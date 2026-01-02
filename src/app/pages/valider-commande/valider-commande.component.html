@@ -1,0 +1,572 @@
+<div class="min-h-screen bg-white">
+  <!-- Header -->
+  <header class="header-top">
+    <div class="container">
+      <div class="header-info">
+        <svg class="icon-phone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+        <span>Customer Service: (+33) 123-456-789</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-content">
+        <div class="logo" [routerLink]="['/']">
+          <span class="logo-icon">🌸</span>
+          Belletny
+        </div>
+        
+        <div class="search-bar">
+          <input type="text" placeholder="Search..." class="search-input">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </div>
+
+        <div class="nav-icons">
+          <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <div class="cart-wrapper" [routerLink]="['/cart']">
+            <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span *ngIf="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-menu">
+        <a *ngFor="let item of menuItems" 
+           [routerLink]="['/products']" 
+           [queryParams]="{category: item}" 
+           class="menu-item">{{ item }}</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <div class="container">
+      <a [routerLink]="['/']">Home</a>
+      <span class="separator">/</span>
+      <a [routerLink]="['/cart']">Cart</a>
+      <span class="separator">/</span>
+      <span class="current">Checkout</span>
+    </div>
+  </div>
+
+  <!-- Checkout Content -->
+  <section class="checkout-section">
+    <div class="container">
+      <h1 class="page-title">Checkout</h1>
+
+      <!-- Progress Steps -->
+      <div class="progress-steps">
+        <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+          <div class="step-number">1</div>
+          <div class="step-info">
+            <p class="step-title">Shipping</p>
+            <p class="step-subtitle">Delivery information</p>
+          </div>
+        </div>
+        <div class="step-line" [class.active]="currentStep >= 2"></div>
+        <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+          <div class="step-number">2</div>
+          <div class="step-info">
+            <p class="step-title">Payment</p>
+            <p class="step-subtitle">Payment method</p>
+          </div>
+        </div>
+        <div class="step-line" [class.active]="currentStep >= 3"></div>
+        <div class="step" [class.active]="currentStep >= 3">
+          <div class="step-number">3</div>
+          <div class="step-info">
+            <p class="step-title">Review</p>
+            <p class="step-subtitle">Order summary</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="checkout-layout">
+        <!-- Main Content -->
+        <div class="checkout-main">
+          
+          <!-- STEP 1: Shipping Information -->
+          <div class="checkout-step" *ngIf="currentStep === 1">
+            <div class="step-header">
+              <h2>Shipping Information</h2>
+              <p>Please enter your delivery details</p>
+            </div>
+
+            <form class="shipping-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="firstName">First Name *</label>
+                  <input 
+                    type="text" 
+                    id="firstName" 
+                    [(ngModel)]="shippingInfo.firstName"
+                    name="firstName"
+                    placeholder="Enter first name"
+                    required>
+                </div>
+                <div class="form-group">
+                  <label for="lastName">Last Name *</label>
+                  <input 
+                    type="text" 
+                    id="lastName" 
+                    [(ngModel)]="shippingInfo.lastName"
+                    name="lastName"
+                    placeholder="Enter last name"
+                    required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="email">Email Address *</label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    [(ngModel)]="shippingInfo.email"
+                    name="email"
+                    placeholder="your.email@example.com"
+                    required>
+                </div>
+                <div class="form-group">
+                  <label for="phone">Phone Number *</label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    [(ngModel)]="shippingInfo.phone"
+                    name="phone"
+                    placeholder="+221 XX XXX XX XX"
+                    required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="address">Address *</label>
+                <input 
+                  type="text" 
+                  id="address" 
+                  [(ngModel)]="shippingInfo.address"
+                  name="address"
+                  placeholder="Street address, apartment, suite, etc."
+                  required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="city">City *</label>
+                  <input 
+                    type="text" 
+                    id="city" 
+                    [(ngModel)]="shippingInfo.city"
+                    name="city"
+                    placeholder="City"
+                    required>
+                </div>
+                <div class="form-group">
+                  <label for="state">State / Region</label>
+                  <input 
+                    type="text" 
+                    id="state" 
+                    [(ngModel)]="shippingInfo.state"
+                    name="state"
+                    placeholder="State">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="zipCode">ZIP / Postal Code *</label>
+                  <input 
+                    type="text" 
+                    id="zipCode" 
+                    [(ngModel)]="shippingInfo.zipCode"
+                    name="zipCode"
+                    placeholder="Postal code"
+                    required>
+                </div>
+                <div class="form-group">
+                  <label for="country">Country *</label>
+                  <select 
+                    id="country" 
+                    [(ngModel)]="shippingInfo.country"
+                    name="country"
+                    required>
+                    <option value="Senegal">Senegal</option>
+                    <option value="France">France</option>
+                    <option value="USA">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="UK">United Kingdom</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-checkbox">
+                <input 
+                  type="checkbox" 
+                  id="saveInfo" 
+                  [(ngModel)]="saveShippingInfo"
+                  name="saveInfo">
+                <label for="saveInfo">Save this information for next time</label>
+              </div>
+
+              <div class="form-checkbox">
+                <input 
+                  type="checkbox" 
+                  id="sameAsBilling" 
+                  [(ngModel)]="sameAsBilling"
+                  name="sameAsBilling">
+                <label for="sameAsBilling">Billing address same as shipping</label>
+              </div>
+            </form>
+
+            <div class="step-actions">
+              <button class="btn-back" [routerLink]="['/cart']">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to Cart
+              </button>
+              <button class="btn-next" (click)="nextStep()">
+                Continue to Payment
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 2: Payment Method -->
+          <div class="checkout-step" *ngIf="currentStep === 2">
+            <div class="step-header">
+              <h2>Payment Method</h2>
+              <p>Select your preferred payment method</p>
+            </div>
+
+            <div class="payment-methods">
+              <div 
+                *ngFor="let method of paymentMethods" 
+                class="payment-method"
+                [class.selected]="selectedPaymentMethod === method.id"
+                (click)="selectPaymentMethod(method.id)">
+                <div class="method-icon">{{ method.icon }}</div>
+                <div class="method-info">
+                  <h3>{{ method.name }}</h3>
+                  <p>{{ method.description }}</p>
+                </div>
+                <div class="method-radio">
+                  <input 
+                    type="radio" 
+                    [id]="method.id" 
+                    [value]="method.id"
+                    [(ngModel)]="selectedPaymentMethod"
+                    name="paymentMethod">
+                </div>
+              </div>
+            </div>
+
+            <!-- Credit Card Form -->
+            <div class="payment-details" *ngIf="selectedPaymentMethod === 'credit-card'">
+              <h3>Card Details</h3>
+              <form class="card-form">
+                <div class="form-group">
+                  <label for="cardNumber">Card Number</label>
+                  <input 
+                    type="text" 
+                    id="cardNumber" 
+                    [(ngModel)]="cardInfo.number"
+                    (input)="formatCardNumber($event)"
+                    name="cardNumber"
+                    placeholder="1234 5678 9012 3456"
+                    maxlength="19">
+                </div>
+                <div class="form-group">
+                  <label for="cardName">Cardholder Name</label>
+                  <input 
+                    type="text" 
+                    id="cardName" 
+                    [(ngModel)]="cardInfo.name"
+                    name="cardName"
+                    placeholder="Name on card">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="expiry">Expiry Date</label>
+                    <input 
+                      type="text" 
+                      id="expiry" 
+                      [(ngModel)]="cardInfo.expiry"
+                      (input)="formatExpiry($event)"
+                      name="expiry"
+                      placeholder="MM/YY"
+                      maxlength="5">
+                  </div>
+                  <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input 
+                      type="text" 
+                      id="cvv" 
+                      [(ngModel)]="cardInfo.cvv"
+                      name="cvv"
+                      placeholder="123"
+                      maxlength="3">
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- Mobile Money Form -->
+            <div class="payment-details" *ngIf="selectedPaymentMethod === 'mobile-money'">
+              <h3>Mobile Money Details</h3>
+              <form class="mobile-money-form">
+                <div class="form-group">
+                  <label for="provider">Provider</label>
+                  <select 
+                    id="provider" 
+                    [(ngModel)]="mobileMoneyInfo.provider"
+                    name="provider">
+                    <option value="Orange Money">Orange Money</option>
+                    <option value="Wave">Wave</option>
+                    <option value="Free Money">Free Money</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="mobileNumber">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    id="mobileNumber" 
+                    [(ngModel)]="mobileMoneyInfo.phoneNumber"
+                    name="mobileNumber"
+                    placeholder="+221 XX XXX XX XX">
+                </div>
+              </form>
+            </div>
+
+            <div class="step-actions">
+              <button class="btn-back" (click)="previousStep()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to Shipping
+              </button>
+              <button class="btn-next" (click)="nextStep()">
+                Review Order
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 3: Review Order -->
+          <div class="checkout-step" *ngIf="currentStep === 3">
+            <div class="step-header">
+              <h2>Review Your Order</h2>
+              <p>Please review your order before placing it</p>
+            </div>
+
+            <!-- Shipping Summary -->
+            <div class="review-section">
+              <div class="review-header">
+                <h3>Shipping Information</h3>
+                <button class="btn-edit" (click)="goToStep(1)">Edit</button>
+              </div>
+              <div class="review-content">
+                <p><strong>{{ shippingInfo.firstName }} {{ shippingInfo.lastName }}</strong></p>
+                <p>{{ shippingInfo.address }}</p>
+                <p>{{ shippingInfo.city }}, {{ shippingInfo.state }} {{ shippingInfo.zipCode }}</p>
+                <p>{{ shippingInfo.country }}</p>
+                <p>Email: {{ shippingInfo.email }}</p>
+                <p>Phone: {{ shippingInfo.phone }}</p>
+              </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="review-section">
+              <div class="review-header">
+                <h3>Payment Method</h3>
+                <button class="btn-edit" (click)="goToStep(2)">Edit</button>
+              </div>
+              <div class="review-content">
+                <p><strong>{{ getSelectedPaymentMethodName() }}</strong></p>
+                <p *ngIf="selectedPaymentMethod === 'credit-card' && cardInfo.number">
+                  Card ending in {{ cardInfo.number.slice(-4) }}
+                </p>
+                <p *ngIf="selectedPaymentMethod === 'mobile-money' && mobileMoneyInfo.phoneNumber">
+                  {{ mobileMoneyInfo.provider }}: {{ mobileMoneyInfo.phoneNumber }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Items Summary -->
+            <div class="review-section">
+              <div class="review-header">
+                <h3>Order Items ({{ cartCount }})</h3>
+                <button class="btn-edit" [routerLink]="['/cart']">Edit</button>
+              </div>
+              <div class="review-items">
+                <div *ngFor="let item of cartItems" class="review-item">
+                  <img [src]="'assets/images/' + item.image" [alt]="item.name">
+                  <div class="item-info">
+                    <h4>{{ item.name }}</h4>
+                    <p>{{ item.category }}</p>
+                    <p>Quantity: {{ item.quantity }}</p>
+                  </div>
+                  <div class="item-price">
+                    ${{ (item.price * item.quantity).toFixed(2) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-actions">
+              <button class="btn-back" (click)="previousStep()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to Payment
+              </button>
+              <button class="btn-place-order" (click)="placeOrder()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Place Order
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Summary Sidebar -->
+        <aside class="order-summary-sidebar">
+          <div class="summary-card">
+            <h3>Order Summary</h3>
+            
+            <div class="summary-items">
+              <div *ngFor="let item of cartItems" class="summary-item">
+                <img [src]="'images/' + item.image" [alt]="item.name">
+                <div class="item-details">
+                  <p class="item-name">{{ item.name }}</p>
+                  <p class="item-qty">Qty: {{ item.quantity }}</p>
+                </div>
+                <p class="item-total">${{ (item.price * item.quantity).toFixed(2) }}</p>
+              </div>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-calculations">
+              <div class="calc-row">
+                <span>Subtotal</span>
+                <span>${{ subtotal.toFixed(2) }}</span>
+              </div>
+              <div class="calc-row">
+                <span>Shipping</span>
+                <span [class.free]="shipping === 0">
+                  {{ shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2) }}
+                </span>
+              </div>
+              <div class="calc-row">
+                <span>Tax</span>
+                <span>${{ tax.toFixed(2) }}</span>
+              </div>
+              <div class="calc-row" *ngIf="discount > 0">
+                <span>Discount ({{ couponCode }})</span>
+                <span class="discount">-${{ discount.toFixed(2) }}</span>
+              </div>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-total">
+              <span>Total</span>
+              <span class="total-amount">${{ total.toFixed(2) }}</span>
+            </div>
+
+            <div class="security-info">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <span>Secure checkout guaranteed</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h3 class="footer-logo">
+            <span class="logo-icon">🌸</span>
+            Belletny
+          </h3>
+          <p class="footer-desc">
+            Votre destination beauté pour des produits cosmétiques naturels et de qualité supérieure.
+          </p>
+          <div class="social-links">
+            <a href="#" class="social-icon">f</a>
+            <a href="#" class="social-icon">t</a>
+            <a href="#" class="social-icon">in</a>
+            <a href="#" class="social-icon">ig</a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-title">Catégories</h4>
+          <ul class="footer-links">
+            <li><a href="#">Hair Cream</a></li>
+            <li><a href="#">Makeup Brushes</a></li>
+            <li><a href="#">Perfumes</a></li>
+            <li><a href="#">Skincare Cream</a></li>
+            <li><a href="#">Makeup Lipstick</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-title">Informations</h4>
+          <ul class="footer-links">
+            <li><a href="#">À propos</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Livraison</a></li>
+            <li><a href="#">Retours</a></li>
+            <li><a href="#">Politique de confidentialité</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-title">Newsletter</h4>
+          <p class="footer-desc">Inscrivez-vous pour recevoir nos offres exclusives</p>
+          <div class="newsletter-form">
+            <input type="email" placeholder="Votre email" class="newsletter-input">
+            <button class="newsletter-btn">→</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2024 Belletny. Tous droits réservés. Créé avec ❤️ pour la beauté.</p>
+      </div>
+    </div>
+  </footer>
+</div>

@@ -1,0 +1,350 @@
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="!sidebarOpen">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">🌸</span>
+        <span class="logo-text" *ngIf="sidebarOpen">CoBeauty Admin</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a 
+        class="nav-item" 
+        [class.active]="activeMenu === 'dashboard'"
+        (click)="setActiveMenu('dashboard')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text" *ngIf="sidebarOpen">Dashboard</span>
+      </a>
+      <a 
+        class="nav-item" 
+        [class.active]="activeMenu === 'orders'"
+        (click)="setActiveMenu('orders')">
+        <span class="nav-icon">📦</span>
+        <span class="nav-text" *ngIf="sidebarOpen">Commandes</span>
+      </a>
+      <a 
+        class="nav-item" 
+        [class.active]="activeMenu === 'products'"
+        (click)="setActiveMenu('products')">
+        <span class="nav-icon">🛍️</span>
+        <span class="nav-text" *ngIf="sidebarOpen">Produits</span>
+      </a>
+      <a 
+        class="nav-item" 
+        [class.active]="activeMenu === 'customers'"
+        (click)="setActiveMenu('customers')">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text" *ngIf="sidebarOpen">Clients</span>
+      </a>
+      <a 
+        class="nav-item" 
+        [class.active]="activeMenu === 'categories'"
+        (click)="setActiveMenu('categories')">
+        <span class="nav-icon">📁</span>
+        <span class="nav-text" *ngIf="sidebarOpen">Categories</span>
+      </a>
+      <a 
+        class="nav-item" 
+        [class.active]="activeMenu === 'analytics'"
+        (click)="setActiveMenu('analytics')">
+        <span class="nav-icon">📈</span>
+        <span class="nav-text" *ngIf="sidebarOpen">Analytics</span>
+      </a>
+      <a 
+        class="nav-item" 
+        [class.active]="activeMenu === 'settings'"
+        (click)="setActiveMenu('settings')">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text" *ngIf="sidebarOpen">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="nav-item" [routerLink]="['/']">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text" *ngIf="sidebarOpen">Voir le Site</span>
+      </a>
+      <a class="nav-item">
+        <span class="nav-icon">🚪</span>
+        <span class="nav-text" *ngIf="sidebarOpen">Déconnexion</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <button class="menu-toggle" (click)="toggleSidebar()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="search-bar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery"
+          placeholder="Search orders, products, customers..."
+          class="search-input">
+      </div>
+
+      <div class="top-bar-actions">
+        <button class="icon-btn" title="Notifications">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="badge">3</span>
+        </button>
+        <button class="icon-btn" title="Messages">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span class="badge">5</span>
+        </button>
+        <div class="admin-profile">
+          <span class="admin-avatar">👨‍💼</span>
+          <span class="admin-name">Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Welcome back! Here's what's happening with your store today.</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-filter">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            Filter
+          </button>
+          <button class="btn-export" (click)="exportData('all')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div *ngFor="let stat of statsCards" class="stat-card" [class]="'stat-' + stat.color">
+          <div class="stat-icon">{{ stat.icon }}</div>
+          <div class="stat-details">
+            <p class="stat-title">{{ stat.title }}</p>
+            <h3 class="stat-value">{{ stat.value }}</h3>
+            <div class="stat-change" [class.positive]="stat.change > 0" [class.negative]="stat.change < 0">
+              <svg *ngIf="stat.change > 0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+              <svg *ngIf="stat.change < 0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+              <span>{{ Math.abs(stat.change) }}%</span>
+              <span class="change-label">vs last month</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-grid">
+        <!-- Sales Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Sales Overview</h3>
+            <div class="chart-filter">
+              <button 
+                [class.active]="selectedPeriod === 'week'"
+                (click)="filterByPeriod('week')">Week</button>
+              <button 
+                [class.active]="selectedPeriod === 'month'"
+                (click)="filterByPeriod('month')">Month</button>
+              <button 
+                [class.active]="selectedPeriod === 'year'"
+                (click)="filterByPeriod('year')">Year</button>
+            </div>
+          </div>
+          <div class="chart-container">
+            <div class="bar-chart">
+              <div *ngFor="let data of salesChartData" class="bar-group">
+                <div class="bar-wrapper">
+                  <div 
+                    class="bar" 
+                    [style.height.%]="getChartBarHeight(data.value, getMaxSalesValue())">
+                    <span class="bar-value">${{ (data.value / 1000).toFixed(1) }}k</span>
+                  </div>
+                </div>
+                <span class="bar-label">{{ data.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Distribution -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Sales by Category</h3>
+          </div>
+          <div class="chart-container">
+            <div class="category-list">
+              <div *ngFor="let category of categoryData" class="category-item">
+                <div class="category-info">
+                  <span class="category-name">{{ category.label }}</span>
+                  <span class="category-percent">{{ category.value }}%</span>
+                </div>
+                <div class="progress-bar">
+                  <div 
+                    class="progress-fill" 
+                    [style.width.%]="category.value">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders Table -->
+      <div class="data-card">
+        <div class="data-header">
+          <h3>Recent Orders</h3>
+          <button class="btn-view-all" (click)="setActiveMenu('orders')">View All</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of recentOrders">
+                <td class="order-id">{{ order.id }}</td>
+                <td class="customer-name">{{ order.customer }}</td>
+                <td>{{ formatDate(order.date) }}</td>
+                <td>{{ order.items }}</td>
+                <td class="total-amount">{{ formatCurrency(order.total) }}</td>
+                <td>
+                  <span class="status-badge" [class]="getOrderStatusClass(order.status)">
+                    {{ getOrderStatusLabel(order.status) }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-action" (click)="viewOrder(order)" title="View Details">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bottom Grid -->
+      <div class="bottom-grid">
+        <!-- Top Products -->
+        <div class="data-card">
+          <div class="data-header">
+            <h3>Top Produits</h3>
+            <button class="btn-view-all" (click)="setActiveMenu('products')">Voir Tout</button>
+          </div>
+          <div class="products-list">
+            <div *ngFor="let product of topProducts" class="product-item">
+              <img [src]="'images/' + product.image" [alt]="product.name" class="product-img">
+              <div class="product-info">
+                <h4>{{ product.name }}</h4>
+                <p>{{ product.category }}</p>
+                <div class="product-stats">
+                  <span class="stat-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {{ product.sales }} sold
+                  </span>
+                  <span class="stat-item" [class.low-stock]="product.stock < 20">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    {{ product.stock }} in stock
+                  </span>
+                </div>
+              </div>
+              <div class="product-actions">
+                <p class="product-price">{{ formatCurrency(product.price) }}</p>
+                <div class="action-btns">
+                  <button class="btn-action" (click)="editProduct(product)" title="Edit">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                  <button class="btn-action danger" (click)="deleteProduct(product)" title="Delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Customers -->
+        <div class="data-card">
+          <div class="data-header">
+            <h3>Recent Customers</h3>
+            <button class="btn-view-all" (click)="setActiveMenu('customers')">View All</button>
+          </div>
+          <div class="customers-list">
+            <div *ngFor="let customer of recentCustomers" class="customer-item">
+              <div class="customer-avatar">{{ customer.avatar }}</div>
+              <div class="customer-info">
+                <h4>{{ customer.name }}</h4>
+                <p>{{ customer.email }}</p>
+                <div class="customer-stats">
+                  <span>{{ customer.orders }} orders</span>
+                  <span>•</span>
+                  <span>{{ formatCurrency(customer.spent) }}</span>
+                </div>
+              </div>
+              <button class="btn-action" (click)="viewCustomer(customer)" title="View Profile">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 18l6-6-6-6"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
