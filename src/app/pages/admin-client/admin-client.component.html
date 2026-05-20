@@ -1,0 +1,299 @@
+<div class="clients-page">
+
+  <!-- En-tête -->
+  <div class="page-header">
+    <div>
+      <h1>Clients</h1>
+      <p>Gérez votre base de clients et suivez leur activité</p>
+    </div>
+    <div class="header-actions">
+      <div class="view-toggle">
+        <button
+          [class.active]="viewMode === 'grid'"
+          (click)="setView('grid')"
+          title="Vue grille">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+          </svg>
+        </button>
+        <button
+          [class.active]="viewMode === 'table'"
+          (click)="setView('table')"
+          title="Vue tableau">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <button class="btn-export" (click)="exportData()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Exporter
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div *ngFor="let stat of statsCards" class="stat-card" [class]="'stat-' + stat.color">
+      <div class="stat-icon">
+        <ng-container [ngSwitch]="stat.icon">
+          <svg *ngSwitchCase="'users'"  width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg *ngSwitchCase="'new'"    width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          <svg *ngSwitchCase="'active'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <svg *ngSwitchCase="'value'"  width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </ng-container>
+      </div>
+      <div class="stat-details">
+        <p class="stat-label">{{ stat.title }}</p>
+        <h3 class="stat-value">{{ stat.value }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onFilterChange()"
+        placeholder="Rechercher par nom, email, téléphone...">
+    </div>
+
+    <select [(ngModel)]="filterSegment" (ngModelChange)="onFilterChange()">
+      <option value="">Tous les segments</option>
+      <option value="vip">VIP</option>
+      <option value="regular">Régulier</option>
+      <option value="new">Nouveau</option>
+      <option value="inactive">Inactif</option>
+    </select>
+
+    <select [(ngModel)]="filterCity" (ngModelChange)="onFilterChange()">
+      <option value="">Toutes les villes</option>
+      <option *ngFor="let city of availableCities" [value]="city">{{ city }}</option>
+    </select>
+
+    <select [(ngModel)]="sortBy" (ngModelChange)="onFilterChange()">
+      <option value="spent_desc">Dépenses ↓</option>
+      <option value="orders_desc">Commandes ↓</option>
+      <option value="name">Nom A→Z</option>
+      <option value="recent">Plus récent</option>
+    </select>
+  </div>
+
+  <!-- Vue Grille -->
+  <div class="clients-grid" *ngIf="viewMode === 'grid'">
+    <div *ngFor="let customer of paginatedCustomers" class="client-card">
+
+      <div class="card-top">
+        <div class="client-info">
+          <div class="avatar" [class]="getAvatarClass(customer.avatarColor)">
+            {{ customer.initials }}
+          </div>
+          <div>
+            <p class="client-name">{{ customer.name }}</p>
+            <p class="client-email">{{ customer.email }}</p>
+            <p class="client-phone">{{ customer.phone }}</p>
+          </div>
+        </div>
+        <span class="segment-badge" [class]="getSegmentClass(customer.segment)">
+          {{ getSegmentLabel(customer.segment) }}
+        </span>
+      </div>
+
+      <div class="card-stats">
+        <div class="stat-item">
+          <p class="stat-val">{{ customer.orders }}</p>
+          <p class="stat-lbl">Commandes</p>
+        </div>
+        <div class="stat-item">
+          <p class="stat-val">{{ formatCurrency(customer.spent) }}</p>
+          <p class="stat-lbl">Total dépensé</p>
+        </div>
+        <div class="stat-item">
+          <p class="stat-val">{{ customer.satisfaction.toFixed(1) }}</p>
+          <p class="stat-lbl">Satisfaction</p>
+        </div>
+      </div>
+
+      <div class="card-bottom">
+        <span class="last-order">
+          Dernière commande : {{ formatDate(customer.lastOrderDate) }}
+        </span>
+        <div class="card-actions">
+          <button class="btn-action" (click)="viewCustomer(customer)" title="Voir le profil">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+          <button class="btn-action" (click)="editCustomer(customer)" title="Modifier">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button class="btn-action danger" (click)="deleteCustomer(customer)" title="Supprimer">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- État vide -->
+    <div class="empty-grid" *ngIf="paginatedCustomers.length === 0">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+      </svg>
+      <p>Aucun client trouvé</p>
+    </div>
+  </div>
+
+  <!-- Vue Tableau -->
+  <div class="table-card" *ngIf="viewMode === 'table'">
+    <div class="table-header">
+      <h3>Tous les clients</h3>
+      <span>{{ filteredCustomers.length }} clients</span>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Ville</th>
+            <th>Segment</th>
+            <th>Commandes</th>
+            <th>Total dépensé</th>
+            <th>Part du CA</th>
+            <th>Satisfaction</th>
+            <th>Dernière commande</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let customer of paginatedCustomers">
+
+            <td>
+              <div class="customer-cell">
+                <div class="avatar sm" [class]="getAvatarClass(customer.avatarColor)">
+                  {{ customer.initials }}
+                </div>
+                <div>
+                  <p class="customer-name">{{ customer.name }}</p>
+                  <p class="customer-email">{{ customer.email }}</p>
+                </div>
+              </div>
+            </td>
+
+            <td class="city-cell">{{ customer.city }}</td>
+
+            <td>
+              <span class="segment-badge" [class]="getSegmentClass(customer.segment)">
+                {{ getSegmentLabel(customer.segment) }}
+              </span>
+            </td>
+
+            <td class="orders-count">{{ customer.orders }}</td>
+
+            <td class="spent-amount">{{ formatCurrency(customer.spent) }}</td>
+
+            <td>
+              <div class="progress-wrap">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="getSpentPercent(customer.spent)"></div>
+                </div>
+                <span class="progress-val">{{ getSpentPercent(customer.spent) }}%</span>
+              </div>
+            </td>
+
+            <td class="satisfaction-cell">
+              <span class="stars">{{ getStars(customer.satisfaction) }}</span>
+              <span class="rating-val">{{ customer.satisfaction.toFixed(1) }}</span>
+            </td>
+
+            <td>{{ formatDate(customer.lastOrderDate) }}</td>
+
+            <td>
+              <div class="action-btns">
+                <button class="btn-action" (click)="viewCustomer(customer)" title="Voir">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+                <button class="btn-action" (click)="editCustomer(customer)" title="Modifier">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="btn-action danger" (click)="deleteCustomer(customer)" title="Supprimer">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+
+          </tr>
+
+          <tr *ngIf="paginatedCustomers.length === 0">
+            <td colspan="9" class="empty-state">
+              <p>Aucun client trouvé</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <span class="pag-info">
+        Affichage {{ getPaginationStart() }}–{{ getPaginationEnd() }} sur {{ filteredCustomers.length }}
+      </span>
+      <div class="pag-btns">
+        <button class="pag-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">←</button>
+        <button
+          *ngFor="let page of visiblePages"
+          class="pag-btn"
+          [class.active]="currentPage === page"
+          (click)="goToPage(page)">{{ page }}</button>
+        <button class="pag-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination vue grille -->
+  <div class="pagination grid-pagination" *ngIf="viewMode === 'grid' && totalPages > 1">
+    <span class="pag-info">
+      Affichage {{ getPaginationStart() }}–{{ getPaginationEnd() }} sur {{ filteredCustomers.length }}
+    </span>
+    <div class="pag-btns">
+      <button class="pag-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">←</button>
+      <button
+        *ngFor="let page of visiblePages"
+        class="pag-btn"
+        [class.active]="currentPage === page"
+        (click)="goToPage(page)">{{ page }}</button>
+      <button class="pag-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">→</button>
+    </div>
+  </div>
+
+</div>

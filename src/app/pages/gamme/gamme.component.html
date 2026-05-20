@@ -1,0 +1,293 @@
+<div class="gammes-page">
+
+  <!-- Fil d'ariane -->
+  <div class="breadcrumb">
+    <div class="container">
+      <a [routerLink]="['/']">Accueil</a>
+      <span class="separator">/</span>
+      <span class="current">Nos Gammes</span>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="gammes-hero">
+    <div class="container">
+      <h1 class="gammes-titre">Nos Gammes</h1>
+      <p class="gammes-sous-titre">Découvrez toutes nos collections beauté soigneusement sélectionnées</p>
+    </div>
+  </div>
+
+  <section class="gammes-section">
+    <div class="container">
+
+      <!-- ─── Filtres ─── -->
+      <div class="filtres-bar">
+
+        <div class="filtre-group filtre-search">
+          <label>Rechercher</label>
+          <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input type="text" [(ngModel)]="searchQuery"
+                   (ngModelChange)="onSearchChange()"
+                   placeholder="Nom ou description...">
+          </div>
+        </div>
+
+        <div class="filtre-group">
+          <label>Prix min (Fr)</label>
+          <input type="number" [(ngModel)]="prixMin"
+                 (ngModelChange)="onFiltreChange()" placeholder="0" min="0">
+        </div>
+
+        <div class="filtre-group">
+          <label>Prix max (Fr)</label>
+          <input type="number" [(ngModel)]="prixMax"
+                 (ngModelChange)="onFiltreChange()" placeholder="Max" min="0">
+        </div>
+
+        <div class="filtre-group">
+          <label>Trier par</label>
+          <select [(ngModel)]="triSelectionne" (ngModelChange)="onFiltreChange()">
+            <option value="nom-asc">Nom A – Z</option>
+            <option value="nom-desc">Nom Z – A</option>
+            <option value="prix-asc">Prix croissant</option>
+            <option value="prix-desc">Prix décroissant</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" (click)="resetFiltres()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+          </svg>
+          Réinitialiser
+        </button>
+
+      </div>
+
+      <!-- ─── Barre résultats + toggle vue ─── -->
+      <div class="resultats-bar">
+        <p class="resultats-count">
+          <strong>{{ total }}</strong> gamme{{ total > 1 ? 's' : '' }} trouvée{{ total > 1 ? 's' : '' }}
+        </p>
+        <div class="view-toggle">
+          <button class="view-btn" [class.active]="currentView === 'grid'"
+                  (click)="setView('grid')" title="Vue grille">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+            </svg>
+          </button>
+          <button class="view-btn" [class.active]="currentView === 'list'"
+                  (click)="setView('list')" title="Vue liste">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ─── Chargement ─── -->
+      <div class="loading-container" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Chargement des gammes...</p>
+      </div>
+
+      <!-- ─── Erreur ─── -->
+      <div class="error-state" *ngIf="hasError && !isLoading">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <h3>Oups, une erreur est survenue</h3>
+        <p>{{ errorMsg }}</p>
+        <button (click)="loadGammes()">Réessayer</button>
+      </div>
+
+
+      <!-- ══════════════════════════════════════════
+           VUE GRILLE
+      ══════════════════════════════════════════ -->
+      <div class="gammes-grid" *ngIf="!isLoading && !hasError && currentView === 'grid'">
+
+        <article *ngFor="let gamme of gammes" class="gamme-card"
+                 [class.gamme-epuisee]="gamme.statut === 'EPUISEE'"
+                 (click)="isDisponible(gamme) && voirGamme(gamme)">
+
+          <!-- Image -->
+          <div class="gamme-image-container">
+            <img
+              [src]="getImageUrl(gamme)"
+              [alt]="gamme.image?.altText || gamme.nom"
+              class="gamme-image"
+              loading="lazy"
+              onerror="this.src='images/placeholder.jpg'">
+
+            <!-- Badge promo -->
+            <span class="gamme-badge-promo" *ngIf="gamme.prixPromo && gamme.prix_fixe">
+              -{{ getReduction(gamme) }}%
+            </span>
+
+            <!-- Badge statut (si pas DISPONIBLE) -->
+            <span class="gamme-badge-statut"
+                  *ngIf="showStatutBadge(gamme)"
+                  [ngClass]="getStatutBadgeClass(gamme.statut)">
+              {{ getStatutLabel(gamme.statut) }}
+            </span>
+
+            <!-- Overlay épuisée -->
+            <div class="gamme-overlay-epuisee" *ngIf="gamme.statut === 'EPUISEE'">
+              <span>Épuisée</span>
+            </div>
+          </div>
+
+          <!-- Infos -->
+          <div class="gamme-body">
+            <h3 class="gamme-nom">{{ gamme.nom }}</h3>
+            <p class="gamme-desc" *ngIf="gamme.description">
+              {{ gamme.description | slice:0:80 }}{{ (gamme.description.length) > 80 ? '…' : '' }}
+            </p>
+
+            <!-- Nb produits -->
+            <div class="gamme-nb-produits" *ngIf="getNbProduits(gamme) > 0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              </svg>
+              {{ getNbProduits(gamme) }} produit{{ getNbProduits(gamme) > 1 ? 's' : '' }}
+            </div>
+
+            <div class="gamme-footer">
+              <!-- Prix -->
+              <div class="gamme-prix-wrap" *ngIf="hasPrix(gamme)">
+                <span class="gamme-prix" [class.prix-promo]="gamme.prixPromo">
+                  {{ formatPrix(gamme) }}
+                </span>
+                <span class="gamme-prix-barre" *ngIf="gamme.prixPromo && gamme.prix_fixe">
+                  {{ formatMontant(gamme.prix_fixe) }}
+                </span>
+              </div>
+
+              <button class="btn-voir"
+                      [class.btn-voir-disabled]="!isDisponible(gamme)"
+                      (click)="voirGamme(gamme); $event.stopPropagation()"
+                      [disabled]="!isDisponible(gamme)">
+                {{ gamme.statut === 'EPUISEE' ? 'Épuisée' : gamme.statut === 'A_VENIR' ? 'Bientôt' : 'Voir →' }}
+              </button>
+            </div>
+          </div>
+
+        </article>
+
+      </div>
+
+
+      <!-- ══════════════════════════════════════════
+           VUE LISTE
+      ══════════════════════════════════════════ -->
+      <div class="gammes-liste" *ngIf="!isLoading && !hasError && currentView === 'list'">
+
+        <article *ngFor="let gamme of gammes" class="gamme-ligne"
+                 [class.gamme-epuisee]="gamme.statut === 'EPUISEE'"
+                 (click)="isDisponible(gamme) && voirGamme(gamme)">
+
+          <!-- Image -->
+          <div class="gamme-ligne-img">
+            <img
+              [src]="getImageUrl(gamme)"
+              [alt]="gamme.image?.altText || gamme.nom"
+              loading="lazy"
+              onerror="this.src='images/placeholder.jpg'">
+            <span class="gamme-badge-promo small" *ngIf="gamme.prixPromo && gamme.prix_fixe">
+              -{{ getReduction(gamme) }}%
+            </span>
+          </div>
+
+          <!-- Infos -->
+          <div class="gamme-ligne-info">
+            <div class="gamme-ligne-header">
+              <h3 class="gamme-nom">{{ gamme.nom }}</h3>
+              <span class="gamme-badge-statut"
+                    *ngIf="showStatutBadge(gamme)"
+                    [ngClass]="getStatutBadgeClass(gamme.statut)">
+                {{ getStatutLabel(gamme.statut) }}
+              </span>
+            </div>
+            <p class="gamme-desc" *ngIf="gamme.description">{{ gamme.description }}</p>
+
+            <!-- Produits inclus -->
+            <div class="gamme-nb-produits" *ngIf="getNbProduits(gamme) > 0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              </svg>
+              {{ getNbProduits(gamme) }} produit{{ getNbProduits(gamme) > 1 ? 's' : '' }} inclus
+            </div>
+
+            <!-- Aperçu produits (liste des noms) -->
+            <div class="gamme-produits-apercu" *ngIf="gamme.produits && gamme.produits.length > 0">
+              <span *ngFor="let gp of gamme.produits | slice:0:3" class="produit-chip">
+                {{ gp.produit.nom }}
+              </span>
+              <span *ngIf="(gamme.produits.length) > 3" class="produit-chip produit-chip-more">
+                +{{ (gamme.produits.length) - 3 }} autres
+              </span>
+            </div>
+          </div>
+
+          <!-- Droite : prix + bouton -->
+          <div class="gamme-ligne-droite">
+            <div class="gamme-prix-wrap" *ngIf="hasPrix(gamme)">
+              <span class="gamme-prix" [class.prix-promo]="gamme.prixPromo">
+                {{ formatPrix(gamme) }}
+              </span>
+              <span class="gamme-prix-barre" *ngIf="gamme.prixPromo && gamme.prix_fixe">
+                {{ formatMontant(gamme.prix_fixe) }}
+              </span>
+            </div>
+            <button class="btn-voir"
+                    [class.btn-voir-disabled]="!isDisponible(gamme)"
+                    (click)="voirGamme(gamme); $event.stopPropagation()"
+                    [disabled]="!isDisponible(gamme)">
+              {{ gamme.statut === 'EPUISEE' ? 'Épuisée' : gamme.statut === 'A_VENIR' ? 'Bientôt disponible' : 'Voir la gamme →' }}
+            </button>
+          </div>
+
+        </article>
+
+      </div>
+
+
+      <!-- ─── État vide ─── -->
+      <div class="empty-state" *ngIf="!isLoading && !hasError && gammes.length === 0">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <h3>Aucune gamme trouvée</h3>
+        <p>Essayez d'ajuster vos filtres</p>
+        <button (click)="resetFiltres()">Réinitialiser les filtres</button>
+      </div>
+
+      <!-- ─── Pagination ─── -->
+      <div class="pagination" *ngIf="!isLoading && lastPage > 1">
+        <button class="pag-btn" (click)="goToPage(currentPage - 1)"
+                [disabled]="currentPage === 1">←</button>
+        <ng-container *ngFor="let page of pagesVisibles">
+          <span *ngIf="page === '...'" class="pag-ellipsis">…</span>
+          <button *ngIf="page !== '...'" class="pag-btn"
+                  [class.active]="currentPage === page"
+                  (click)="goToPage(+page)">{{ page }}</button>
+        </ng-container>
+        <button class="pag-btn" (click)="goToPage(currentPage + 1)"
+                [disabled]="currentPage === lastPage">→</button>
+      </div>
+
+    </div>
+  </section>
+
+</div>

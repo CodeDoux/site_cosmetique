@@ -1,0 +1,550 @@
+<div class="gammes-admin-page">
+
+  <!-- ─── En-tête ─── -->
+  <div class="page-header">
+    <div>
+      <h1>Gammes</h1>
+      <p>{{ total }} gamme{{ total > 1 ? 's' : '' }} au total</p>
+    </div>
+    <button class="btn-add" (click)="openModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nouvelle gamme
+    </button>
+  </div>
+
+  <!-- ─── Chargement ─── -->
+  <div class="table-loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- ─── Erreur ─── -->
+  <div class="alert-error" *ngIf="hasError && !isLoading">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ errorMsg }}</span>
+    <button (click)="loadGammes()">Réessayer</button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !hasError">
+
+    <!-- ─── Filtres ─── -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" [(ngModel)]="searchQuery"
+               (ngModelChange)="onSearchChange()"
+               placeholder="Nom de la gamme...">
+      </div>
+
+      <select [(ngModel)]="filterStatut" (ngModelChange)="onFilterChange()">
+        <option value="">Tous les statuts</option>
+        <option value="DISPONIBLE">Disponible</option>
+        <option value="EPUISEE">Épuisée</option>
+        <option value="A_VENIR">À venir</option>
+      </select>
+
+      <select [(ngModel)]="filterSort" (ngModelChange)="onFilterChange()">
+        <option value="nom-asc">Nom A – Z</option>
+        <option value="nom-desc">Nom Z – A</option>
+        <option value="prix-asc">Prix croissant</option>
+        <option value="prix-desc">Prix décroissant</option>
+      </select>
+    </div>
+
+    <!-- ─── Tableau ─── -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Liste des gammes</h3>
+        <span>{{ total }} gamme{{ total > 1 ? 's' : '' }}</span>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Gamme</th>
+              <th>Statut</th>
+              <th>Produits</th>
+              <th>Prix fixe</th>
+              <th>Prix promo</th>
+              <th>Période</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let gamme of gammes">
+
+              <!-- Gamme (image + nom) -->
+              <td>
+                <div class="gamme-cell">
+                  <div class="gamme-image-wrap">
+                    <img *ngIf="gamme.image" [src]="getImageUrl(gamme)" [alt]="gamme.nom">
+                    <div *ngIf="!gamme.image" class="gamme-img-placeholder">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <strong>{{ gamme.nom }}</strong>
+                    <span class="gamme-desc" *ngIf="gamme.description">
+                      {{ gamme.description | slice:0:50 }}{{ (gamme.description.length) > 50 ? '…' : '' }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Statut -->
+              <td>
+                <span class="statut-badge" [ngClass]="getStatutClass(gamme.statut)">
+                  {{ getStatutLabel(gamme.statut) }}
+                </span>
+              </td>
+
+              <!-- Nb produits -->
+              <td>
+                <span class="produits-count">
+                  {{ gamme.produits?.length ?? 0 }} produit{{ (gamme.produits?.length ?? 0) > 1 ? 's' : '' }}
+                </span>
+              </td>
+
+              <!-- Prix fixe -->
+              <td class="prix-cell">{{ formatMontant(gamme.prix_fixe) }}</td>
+
+              <!-- Prix promo -->
+              <td>
+                <div class="prix-promo-cell" *ngIf="gamme.prixPromo">
+                  <span class="prix-promo">{{ formatMontant(gamme.prixPromo) }}</span>
+                  <span class="reduction-badge">-{{ getReduction(gamme) }}%</span>
+                </div>
+                <span class="text-light" *ngIf="!gamme.prixPromo">—</span>
+              </td>
+
+              <!-- Période -->
+              <td>
+                <div class="periode-cell">
+                  <span>{{ formatDate(gamme.dateDebut) }}</span>
+                  <span class="periode-sep">→</span>
+                  <span>{{ formatDate(gamme.dateFin) }}</span>
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="action-btns">
+                  <button class="btn-action view" (click)="openDetail(gamme)" title="Voir les détails">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  <button class="btn-action edit" (click)="openModal(gamme)" title="Modifier">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button class="btn-action delete" (click)="confirmDelete(gamme)" title="Supprimer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+
+            <!-- Vide -->
+            <tr *ngIf="gammes.length === 0">
+              <td colspan="7" class="empty-state">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+                <p>Aucune gamme trouvée</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="lastPage > 1">
+        <span class="pag-info">{{ paginationStart }}–{{ paginationEnd }} sur {{ total }}</span>
+        <div class="pag-btns">
+          <button class="pag-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">←</button>
+          <ng-container *ngFor="let p of pagesVisibles">
+            <span *ngIf="p === '...'" class="pag-ellipsis">…</span>
+            <button *ngIf="p !== '...'" class="pag-btn"
+                    [class.active]="currentPage === p"
+                    (click)="goToPage(+p)">{{ p }}</button>
+          </ng-container>
+          <button class="pag-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === lastPage">→</button>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL AJOUT / ÉDITION
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModalOnOverlay($event)">
+  <div class="modal-content modal-xl" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>{{ editingGamme ? 'Modifier la gamme' : 'Nouvelle gamme' }}</h2>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="saveGamme()">
+
+        <div class="form-layout">
+
+          <!-- ─── Colonne gauche ─── -->
+          <div class="form-col-left">
+
+            <!-- Image -->
+            <div class="form-group">
+              <label>Image de la gamme</label>
+              <div class="upload-zone"
+                   [class.drag-over]="isDragOver"
+                   (dragover)="onDragOver($event)"
+                   (dragleave)="onDragLeave()"
+                   (drop)="onDrop($event)"
+                   (click)="fileInput.click()">
+                <input #fileInput type="file" accept="image/*" hidden (change)="onImageSelected($event)">
+                <ng-container *ngIf="imagePreview; else noPreview">
+                  <img [src]="imagePreview" alt="Aperçu" class="image-preview">
+                  <button type="button" class="btn-remove-image" (click)="removeImage(); $event.stopPropagation()">
+                    Retirer l'image
+                  </button>
+                </ng-container>
+                <ng-template #noPreview>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  <p>Glissez votre image ou <strong>cliquez</strong></p>
+                  <p class="upload-hint">PNG, JPG, WEBP — max 5 Mo</p>
+                </ng-template>
+              </div>
+            </div>
+
+            <!-- Statut -->
+            <div class="form-group">
+              <label>Statut *</label>
+              <select [(ngModel)]="formData.statut" name="statut" required>
+                <option value="DISPONIBLE">Disponible</option>
+                <option value="EPUISEE">Épuisée</option>
+                <option value="A_VENIR">À venir</option>
+              </select>
+            </div>
+
+            <!-- Prix fixe -->
+            <div class="form-group">
+              <label>Prix fixe (Fr) *</label>
+              <input type="number" [(ngModel)]="formData.prix_fixe" name="prix_fixe"
+                     placeholder="0" min="0" required>
+            </div>
+
+            <!-- Prix promo -->
+            <div class="form-group">
+              <label>Prix promotionnel (Fr)</label>
+              <input type="number" [(ngModel)]="formData.prixPromo" name="prixPromo"
+                     placeholder="Optionnel" min="0">
+              <span class="form-hint" *ngIf="formData.prixPromo && formData.prix_fixe">
+                Réduction : -{{ getReduction({ prix_fixe: formData.prix_fixe!, prixPromo: formData.prixPromo, nom: '', statut: 'DISPONIBLE', dateDebut: '', dateFin: '' }) }}%
+              </span>
+            </div>
+
+            <!-- Dates -->
+            <div class="form-group">
+              <label>Date de début *</label>
+              <input type="date" [(ngModel)]="formData.dateDebut" name="dateDebut" required>
+            </div>
+            <div class="form-group">
+              <label>Date de fin *</label>
+              <input type="date" [(ngModel)]="formData.dateFin" name="dateFin" required>
+            </div>
+
+          </div>
+
+          <!-- ─── Colonne droite ─── -->
+          <div class="form-col-right">
+
+            <!-- Nom -->
+            <div class="form-group">
+              <label>Nom de la gamme *</label>
+              <input type="text" [(ngModel)]="formData.nom" name="nom"
+                     placeholder="Ex : Gamme Capillaire Pro" required>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+              <label>Description</label>
+              <textarea [(ngModel)]="formData.description" name="description"
+                        placeholder="Décrivez la gamme..." rows="3"></textarea>
+            </div>
+
+            <!-- ─── Produits de la gamme ─── -->
+            <div class="form-group">
+              <div class="produits-header">
+                <label>Produits de la gamme *</label>
+                <button type="button" class="btn-ajouter-produit"
+                        (click)="showProduitPicker = !showProduitPicker">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Ajouter un produit
+                </button>
+              </div>
+
+              <!-- Picker produits -->
+              <div class="produit-picker-dropdown" *ngIf="showProduitPicker">
+                <div class="search-box produits-search">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  <input type="text" [(ngModel)]="searchProduit" name="searchProduit"
+                         (ngModelChange)="onSearchProduit()"
+                         placeholder="Rechercher...">
+                </div>
+                <div class="produit-picker-list">
+                  <div class="table-loading" *ngIf="isLoadingProduits" style="padding: 1rem">
+                    <div class="spinner" style="width:24px; height:24px; border-width:2px"></div>
+                  </div>
+                  <div *ngFor="let p of produitsFiltres"
+                       class="produit-picker-row"
+                       [class.already-added]="isProduitDansGamme(p)"
+                       (click)="!isProduitDansGamme(p) && ajouterProduit(p); showProduitPicker = false">
+                    <img [src]="getProduitImage(p)" [alt]="p.nom">
+                    <div class="picker-info">
+                      <span class="picker-nom">{{ p.nom }}</span>
+                      <span class="picker-prix">{{ formatMontant(p.prixPromo ?? p.prix) }}</span>
+                    </div>
+                    <svg *ngIf="isProduitDansGamme(p)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="check-icon">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                  <div class="empty-picker" *ngIf="produitsFiltres.length === 0 && !isLoadingProduits">
+                    Aucun produit trouvé
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lignes produits sélectionnés -->
+              <div class="lignes-produits" *ngIf="lignesProduits.length > 0">
+                <div *ngFor="let ligne of lignesProduits; let i = index" class="ligne-produit">
+                  <img [src]="getProduitImage(ligne.produit)" [alt]="ligne.produit.nom">
+                  <div class="ligne-info">
+                    <span class="ligne-nom">{{ ligne.produit.nom }}</span>
+                  </div>
+                  <div class="ligne-inputs">
+                    <div class="ligne-field">
+                      <label>Qté</label>
+                      <input type="number" [(ngModel)]="ligne.quantite"
+                             [name]="'qte_' + i" min="1" placeholder="1">
+                    </div>
+                    <div class="ligne-field">
+                      <label>Valeur (Fr)</label>
+                      <input type="number" [(ngModel)]="ligne.valeur_unitaire"
+                             [name]="'val_' + i" min="0" placeholder="0">
+                    </div>
+                  </div>
+                  <button type="button" class="btn-retirer-produit" (click)="retirerProduit(i)" title="Retirer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Valeur totale -->
+                <div class="valeur-totale">
+                  <span>Valeur totale des produits</span>
+                  <strong>{{ formatMontant(valeurTotaleGamme) }}</strong>
+                </div>
+              </div>
+
+              <!-- Vide -->
+              <div class="lignes-vides" *ngIf="lignesProduits.length === 0">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+                <p>Aucun produit ajouté</p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Erreur -->
+        <div class="alert-error" *ngIf="formError" style="margin-top: 1rem">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ formError }}
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="btn-submit" [disabled]="isSaving">
+            {{ isSaving ? 'Enregistrement...' : (editingGamme ? 'Mettre à jour' : 'Créer la gamme') }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL DÉTAIL
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="showDetailModal = false">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>{{ detailGamme?.nom }}</h2>
+      <button class="close-btn" (click)="showDetailModal = false">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="isLoadingDetail">
+      <div class="table-loading">
+        <div class="spinner"></div>
+        <p>Chargement...</p>
+      </div>
+    </div>
+
+    <div class="modal-body" *ngIf="!isLoadingDetail && detailGamme">
+
+      <div class="detail-top">
+        <!-- Image -->
+        <div class="detail-image">
+          <img *ngIf="detailGamme.image" [src]="getImageUrl(detailGamme)" [alt]="detailGamme.nom">
+          <div *ngIf="!detailGamme.image" class="detail-img-placeholder">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Infos -->
+        <div class="detail-infos">
+          <span class="statut-badge" [ngClass]="getStatutClass(detailGamme.statut)">
+            {{ getStatutLabel(detailGamme.statut) }}
+          </span>
+          <p class="detail-desc" *ngIf="detailGamme.description">{{ detailGamme.description }}</p>
+
+          <div class="detail-prix">
+            <div>
+              <span class="detail-prix-label">Prix fixe</span>
+              <span class="detail-prix-val">{{ formatMontant(detailGamme.prix_fixe) }}</span>
+            </div>
+            <div *ngIf="detailGamme.prixPromo">
+              <span class="detail-prix-label">Prix promo</span>
+              <span class="detail-prix-val promo">{{ formatMontant(detailGamme.prixPromo) }}</span>
+              <span class="reduction-badge">-{{ getReduction(detailGamme) }}%</span>
+            </div>
+          </div>
+
+          <div class="detail-periode">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span>{{ formatDate(detailGamme.dateDebut) }} → {{ formatDate(detailGamme.dateFin) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Produits de la gamme -->
+      <div class="detail-produits-section" *ngIf="detailGamme.produits && detailGamme.produits.length > 0">
+        <h4>Produits inclus ({{ detailGamme.produits.length }})</h4>
+        <table class="produits-table">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Quantité</th>
+              <th>Valeur unitaire</th>
+              <th>Sous-total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let gp of detailGamme.produits">
+              <td>
+                <div class="produit-cell">
+                  <img [src]="getProduitImage(gp.produit)" [alt]="gp.produit.nom">
+                  <span>{{ gp.produit.nom }}</span>
+                </div>
+              </td>
+              <td>{{ gp.quantite }}</td>
+              <td>{{ formatMontant(gp.valeur_unitaire) }}</td>
+              <td class="prix-cell">{{ formatMontant(gp.valeur_unitaire * gp.quantite) }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3"><strong>Valeur totale</strong></td>
+<td class="prix-cell"><strong>{{ formatMontant(getValeurTotale(detailGamme)) }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showDetailModal = false">Fermer</button>
+        <button class="btn-submit" (click)="showDetailModal = false; openModal(detailGamme!)">
+          Modifier
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL SUPPRESSION
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="showDeleteModal = false">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Supprimer la gamme</h2>
+      <button class="close-btn" (click)="showDeleteModal = false">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-confirmation">
+        <div class="warning-icon">⚠️</div>
+        <p>Voulez-vous vraiment supprimer <strong>{{ deletingGamme?.nom }}</strong> ?</p>
+        <p class="warning-text">Cette action est irréversible.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showDeleteModal = false">Annuler</button>
+        <button class="btn-delete" (click)="deleteGamme()" [disabled]="isSaving">
+          {{ isSaving ? 'Suppression...' : 'Supprimer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,294 @@
+/* ============================================
+   PAGE CONTACT — CHARTE GRAPHIQUE CLIENT
+   Couleurs : #354d35 | #caca8e | #e0929d | #fde9e8
+   ============================================ */
+
+:root {
+    --primary-color: #354d35;
+    --primary-hover: #2a3d2a;
+    --secondary-color: #caca8e;
+    --accent-color: #e0929d;
+    --accent-hover: #d4788a;
+    --bg-light: #fde9e8;
+    --bg-soft: #faf5f4;
+    --bg-card: #ffffff;
+    --text-dark: #1e2b1e;
+    --text-gray: #6b7a6b;
+    --text-light: #9baa9b;
+    --border-color: #dde5dd;
+    --white: #ffffff;
+    --shadow: 0 1px 4px 0 rgb(53 77 53 / 0.08);
+    --shadow-lg: 0 10px 30px -5px rgb(53 77 53 / 0.15);
+    --font-display: 'Baket Fashion', 'Georgia', serif;
+    --font-body: 'Heuvel Grotesk', 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* ─── Fil d'ariane ─── */
+.breadcrumb {
+    background: var(--white);
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    font-family: var(--font-body);
+    font-size: 1rem;
+}
+
+.breadcrumb .container { display: flex; align-items: center; gap: 0.5rem; }
+.breadcrumb a { color: var(--text-gray); text-decoration: none; transition: color 0.3s; }
+.breadcrumb a:hover { color: var(--primary-color); }
+.breadcrumb .separator { color: var(--border-color); }
+.breadcrumb .current { color: var(--primary-color); font-weight: 600; }
+
+/* ─── Hero ─── */
+.contact-hero {
+    background: linear-gradient(135deg, var(--bg-light) 0%, #f5ede6 60%, var(--secondary-color) 100%);
+    padding: 4rem 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.contact-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(202,202,142,0.25) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.contact-titre {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 400;
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.contact-sous-titre {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: var(--text-gray);
+    position: relative;
+    z-index: 1;
+}
+
+/* ─── Section contact ─── */
+.contact-section {
+    padding: 4rem 0;
+    background: var(--bg-soft);
+}
+
+/* ─── Grille infos contact ─── */
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+}
+
+.contact-card {
+    background: var(--white);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border-color);
+    transition: all 0.3s;
+}
+
+.contact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--secondary-color);
+}
+
+.contact-card-icone {
+    width: 56px;
+    height: 56px;
+    border-radius: 1rem;
+    background: var(--bg-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--accent-color);
+    border: 1.5px solid rgba(224, 146, 157, 0.2);
+}
+
+.contact-card-contenu { flex: 1; }
+
+.contact-card-contenu h3 {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.6rem;
+}
+
+.contact-card-contenu p {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+.contact-lien {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.25s;
+    line-height: 1.8;
+}
+
+.contact-lien:hover { color: var(--accent-color); }
+
+/* ─── Réseaux sociaux ─── */
+.reseaux-section { text-align: center; }
+
+.reseaux-titre {
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-weight: 400;
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+}
+
+.reseaux-sous-titre {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    color: var(--text-gray);
+    max-width: 520px;
+    margin: 0 auto 3rem;
+    line-height: 1.6;
+}
+
+.reseaux-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* ─── Carte réseau ─── */
+.reseau-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    text-decoration: none;
+    border: 1.5px solid var(--border-color);
+    background: var(--white);
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    color: var(--text-dark);
+}
+
+.reseau-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.reseau-icone {
+    width: 58px;
+    height: 58px;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.3s;
+}
+
+.reseau-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.reseau-nom {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.2rem;
+}
+
+.reseau-handle {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reseau-fleche {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    flex-shrink: 0;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.reseau-card:hover .reseau-fleche {
+    transform: translateX(4px);
+}
+
+/* Couleurs spécifiques par réseau */
+.reseau-instagram .reseau-icone { background: rgba(225, 48, 108, 0.1); color: #e1306c; }
+.reseau-instagram:hover { border-color: #e1306c; background: rgba(225, 48, 108, 0.04); }
+.reseau-instagram:hover .reseau-fleche { color: #e1306c; }
+
+.reseau-tiktok .reseau-icone { background: rgba(30, 30, 30, 0.08); color: #1e1e1e; }
+.reseau-tiktok:hover { border-color: #1e1e1e; background: rgba(30, 30, 30, 0.04); }
+.reseau-tiktok:hover .reseau-fleche { color: #1e1e1e; }
+
+.reseau-facebook .reseau-icone { background: rgba(24, 119, 242, 0.1); color: #1877f2; }
+.reseau-facebook:hover { border-color: #1877f2; background: rgba(24, 119, 242, 0.04); }
+.reseau-facebook:hover .reseau-fleche { color: #1877f2; }
+
+.reseau-whatsapp .reseau-icone { background: rgba(37, 211, 102, 0.1); color: #25d366; }
+.reseau-whatsapp:hover { border-color: #25d366; background: rgba(37, 211, 102, 0.04); }
+.reseau-whatsapp:hover .reseau-fleche { color: #25d366; }
+
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .contact-titre    { font-size: 2.2rem; }
+    .reseaux-titre    { font-size: 2rem; }
+    .contact-grid     { grid-template-columns: 1fr; }
+    .reseaux-grid     { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+    .contact-titre    { font-size: 1.8rem; }
+    .contact-hero     { padding: 3rem 0; }
+    .contact-section  { padding: 3rem 0; }
+    .reseaux-grid     { grid-template-columns: 1fr; }
+    .contact-card     { padding: 1.5rem; }
+    .reseau-card      { padding: 1.25rem; }
+}

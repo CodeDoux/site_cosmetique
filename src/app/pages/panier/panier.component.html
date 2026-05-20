@@ -1,294 +1,242 @@
-<div class="min-h-screen bg-white">
-  <!-- Header -->
-  <header class="header-top">
+<div class="panier-page">
+
+  <section class="panier-section">
     <div class="container">
-      <div class="header-info">
-        <svg class="icon-phone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-        </svg>
-        <span>Service Client: (+221) 78-185-73-13</span>
-      </div>
-    </div>
-  </header>
+      <h1 class="page-title">Mon Panier</h1>
 
-  <!-- Navigation -->
-  <nav class="navbar">
-    <div class="container">
-      <div class="nav-content">
-        <div class="logo" [routerLink]="['/']">
-          <span class="logo-icon">🌸</span>
-          CoBeauty
-        </div>
-        
-        <div class="search-bar">
-          <input type="text" placeholder="Search..." class="search-input">
-          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
-        </div>
+      <!-- ── Panier avec articles ── -->
+      <div class="panier-layout" *ngIf="cartItems.length > 0">
 
-        <div class="nav-icons">
-          <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <div class="cart-wrapper" [routerLink]="['/panier']">
-            <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="9" cy="21" r="1"></circle>
-              <circle cx="20" cy="21" r="1"></circle>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
-            <span *ngIf="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="nav-menu">
-        <a *ngFor="let item of menuItems" 
-           [routerLink]="['/produits']" 
-           [queryParams]="{category: item}" 
-           class="menu-item">{{ item }}</a>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Breadcrumb -->
-  <div class="breadcrumb">
-    <div class="container">
-      <a [routerLink]="['/']">Accueil</a>
-      <span class="separator">/</span>
-      <span class="current">Panier</span>
-    </div>
-  </div>
-
-  <!-- Cart Content -->
-  <section class="cart-section">
-    <div class="container">
-      <h1 class="page-title">Panier</h1>
-
-      <div class="cart-layout" *ngIf="cartItems.length > 0">
-        <!-- Cart Items -->
-        <div class="cart-items-section">
-          <div class="cart-header">
+        <!-- Liste des articles -->
+        <div class="articles-section">
+          <div class="articles-header">
             <h2>Articles ({{ cartCount }})</h2>
-            <button class="btn-clear" (click)="clearCart()">Vider le panier</button>
+            <button class="btn-vider" (click)="clearCart()">Vider le panier</button>
           </div>
 
-          <div class="cart-items-list">
-            <div *ngFor="let item of cartItems" class="cart-item">
-              <div class="item-image">
-                <img [src]="'images/' + item.image" [alt]="item.name">
-              </div>
+          <div class="articles-liste">
+            <div *ngFor="let item of cartItems" class="article-item">
 
-              <div class="item-details">
-                <h3 class="item-name">{{ item.name }}</h3>
-                <p class="item-category">{{ item.category }}</p>
-                <p class="item-price">${{ item.price.toFixed(2) }}</p>
-              </div>
+              <!-- ══ CAS PRODUIT ══ -->
+              <ng-container *ngIf="item.type === 'PRODUIT' && item.produit">
 
-              <div class="item-quantity">
-                <label>Quantity</label>
-                <div class="quantity-control">
+                <!-- Image -->
+                <div class="article-image">
+                  <img [src]="getImageProduit(item)" [alt]="item.produit.nom"
+                       onerror="this.src='images/placeholder.jpg'">
+                </div>
+
+                <!-- Détails -->
+                <div class="article-details">
+                  <h3 class="article-nom">{{ item.produit.nom }}</h3>
+                  <p class="article-categorie" *ngIf="item.produit.categorie">
+                    {{ item.produit.categorie.nom }}
+                  </p>
+                  <p class="article-prix">
+                    {{ formatPrix(item.produit.prixPromo ?? item.produit.prix) }}
+                    <span class="article-prix-barre" *ngIf="item.produit.prixPromo">
+                      {{ formatPrix(item.produit.prix) }}
+                    </span>
+                  </p>
+                </div>
+
+              </ng-container>
+
+              <!-- ══ CAS GAMME ══ -->
+              <ng-container *ngIf="item.type === 'GAMME' && item.gamme">
+
+                <!-- Image -->
+                <div class="article-image article-image-gamme">
+                  <img [src]="getImageGamme(item)" [alt]="item.gamme.nom"
+                       onerror="this.src='images/placeholder.jpg'">
+                </div>
+
+                <!-- Détails -->
+                <div class="article-details">
+                  <h3 class="article-nom">{{ item.gamme.nom }}</h3>
+                  <p class="article-categorie gamme-produits-count"
+                     *ngIf="item.gamme.produits && item.gamme.produits.length > 0">
+                    {{ item.gamme.produits.length }} produit{{ item.gamme.produits.length > 1 ? 's' : '' }} inclus
+                  </p>
+                  <p class="article-prix">
+                    {{ formatPrix(item.gamme.prixPromo ?? item.gamme.prix_fixe) }}
+                    <span class="article-prix-barre" *ngIf="item.gamme.prixPromo">
+                      {{ formatPrix(item.gamme.prix_fixe) }}
+                    </span>
+                  </p>
+                </div>
+
+              </ng-container>
+
+              <!-- Quantité (commune aux deux types) -->
+              <div class="article-quantite">
+                <label>Quantité</label>
+                <div class="quantite-control">
                   <button class="qty-btn" (click)="decreaseQuantity(item)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
                   </button>
-                  <input 
-                    type="number" 
-                    [(ngModel)]="item.quantity"
-                    (change)="updateQuantity(item, item.quantity)"
-                    class="qty-input"
-                    min="1"
-                    max="99">
+                  <input type="number" [(ngModel)]="item.quantite"
+                         (change)="updateQuantity(item, item.quantite)"
+                         class="qty-input" min="1" max="99">
                   <button class="qty-btn" (click)="increaseQuantity(item)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
                   </button>
                 </div>
               </div>
 
-              <div class="item-total">
-                <label>Total</label>
-                <p class="total-price">${{ (item.price * item.quantity).toFixed(2) }}</p>
+              <!-- Sous-total -->
+              <div class="article-total">
+                <label>Sous-total</label>
+                <p class="total-prix">{{ getSousTotal(item) }}</p>
               </div>
 
-              <button class="btn-remove" (click)="removeItem(item)">
+              <!-- Supprimer -->
+              <button class="btn-supprimer" (click)="removeItem(item)" title="Supprimer">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  <line x1="10" y1="11" x2="10" y2="17"></line>
-                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  <line x1="10" y1="11" x2="10" y2="17"/>
+                  <line x1="14" y1="11" x2="14" y2="17"/>
                 </svg>
               </button>
+
             </div>
           </div>
 
-          <!-- Continue Shopping Button -->
-          <div class="cart-actions">
-            <button class="btn-continue" [routerLink]="['/produits']">
+          <!-- Continuer les achats -->
+          <div class="panier-actions">
+            <button class="btn-continuer" [routerLink]="['/produits']">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
               </svg>
-              Ajouter d'autres
+              Continuer mes achats
+            </button>
+            <button class="btn-voir-gammes" [routerLink]="['/gammes']">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              </svg>
+              Voir nos gammes
             </button>
           </div>
         </div>
 
-        <!-- Order Summary -->
-        <aside class="order-summary">
-          <h2 class="summary-title">Order Summary</h2>
+        <!-- Récapitulatif -->
+        <aside class="recapitulatif">
+          <h2 class="recap-titre">Récapitulatif</h2>
 
-          <div class="summary-section">
-            <div class="summary-row">
-              <span>Subtotal</span>
-              <span class="amount">${{ subtotal.toFixed(2) }}</span>
+          <!-- Résumé des items -->
+          <div class="recap-items">
+            <div *ngFor="let item of cartItems" class="recap-item">
+              <span class="recap-item-nom">
+                <span class="recap-item-type" *ngIf="item.type === 'GAMME'">🎁 </span>
+                {{ item.type === 'PRODUIT' ? item.produit?.nom : item.gamme?.nom }}
+                <span class="recap-item-qte">× {{ item.quantite }}</span>
+              </span>
+              <span class="recap-item-prix">{{ getSousTotal(item) }}</span>
             </div>
-            <div class="summary-row">
-              <span>Shipping</span>
-              <span class="amount" [class.free]="shipping === 0">
-                {{ shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2) }}
+          </div>
+
+          <div class="recap-section">
+            <div class="recap-ligne">
+              <span>Sous-total</span>
+              <span class="montant">{{ formatPrix(subtotal) }}</span>
+            </div>
+            <div class="recap-ligne">
+              <span>Livraison</span>
+              <span class="montant" [class.gratuit]="shipping === 0">
+                {{ shipping === 0 ? 'À sélectionner' : formatPrix(shipping) }}
               </span>
             </div>
-            <div class="summary-row">
-              <span>Tax (10%)</span>
-              <span class="amount">${{ tax.toFixed(2) }}</span>
-            </div>
-            <div class="summary-row" *ngIf="discount > 0">
-              <span>Discount</span>
-              <span class="amount discount">-${{ discount.toFixed(2) }}</span>
+            <div class="recap-ligne" *ngIf="discount > 0">
+              <span>Réduction</span>
+              <span class="montant reduction">-{{ formatPrix(discount) }}</span>
             </div>
           </div>
 
-          <div class="summary-total">
+          <div class="recap-total">
             <span>Total</span>
-            <span class="total-amount">${{ total.toFixed(2) }}</span>
+            <span class="total-montant">{{ formatPrix(total) }}</span>
           </div>
 
-          <!-- Coupon Section -->
-          <div class="coupon-section">
+          <!-- Code promo -->
+          <div class="code-promo-section">
             <h3>Code promo</h3>
-            <div class="coupon-form" *ngIf="!couponApplied">
-              <input 
-                type="text" 
-                [(ngModel)]="couponCode"
-                placeholder="Entrer le code promo"
-                class="coupon-input">
-              <button class="btn-apply" (click)="applyCoupon()">Appliquer</button>
+            <div class="code-promo-form" *ngIf="!couponApplied">
+              <input type="text" [(ngModel)]="couponCode"
+                     placeholder="Entrez votre code promo" class="code-promo-input">
+              <button class="btn-appliquer" (click)="applyCoupon()">Appliquer</button>
             </div>
-            <div class="coupon-applied" *ngIf="couponApplied">
-              <div class="coupon-badge">
+            <div class="code-promo-applique" *ngIf="couponApplied">
+              <div class="promo-badge">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="20 6 9 17 4 12"></polyline>
+                  <polyline points="20 6 9 17 4 12"/>
                 </svg>
                 <span>{{ couponCode }}</span>
               </div>
-              <button class="btn-remove-coupon" (click)="removeCoupon()">Remove</button>
+              <button class="btn-retirer-promo" (click)="removeCoupon()">Retirer</button>
             </div>
-            <p class="coupon-hint">Try: WELCOME10, SAVE20, BEAUTY15</p>
           </div>
 
-          <button class="btn-checkout" (click)="proceedToCheckout()" >
+          <!-- Bouton commander -->
+          <button class="btn-commander" (click)="proceedToCheckout()">
             Passer la commande
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
             </svg>
           </button>
 
-          <!-- Free Shipping Info -->
-          <div class="shipping-info" *ngIf="shipping > 0">
+          <!-- Info livraison -->
+          <div class="info-livraison" *ngIf="shipping > 0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path>
+              <rect x="1" y="3" width="15" height="13"/>
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+              <circle cx="5.5" cy="18.5" r="2.5"/>
+              <circle cx="18.5" cy="18.5" r="2.5"/>
             </svg>
-            <p>Add ${{ (200 - subtotal).toFixed(2) }} more to get FREE shipping!</p>
-          </div>
-          <div class="shipping-info success" *ngIf="shipping === 0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <p>Congratulations! You have FREE shipping!</p>
+            <p>Commandez pour {{ formatPrix(50000 - subtotal) }} de plus pour bénéficier de la livraison gratuite !</p>
           </div>
 
-          <!-- Security Badge -->
-          <div class="security-badge">
+          <div class="info-livraison succes" *ngIf="shipping === 0 && subtotal > 0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <polyline points="20 6 9 17 4 12"/>
             </svg>
-            <span>Secure Checkout</span>
+            <p>Vous bénéficiez de la livraison gratuite !</p>
           </div>
+
+          <!-- Badge sécurité -->
+          <div class="badge-securite">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Paiement sécurisé</span>
+          </div>
+
         </aside>
       </div>
 
-      <!-- Empty Cart -->
-      <div class="empty-cart" *ngIf="cartItems.length === 0">
-        <div class="empty-cart-icon">🛒</div>
+      <!-- Panier vide -->
+      <div class="panier-vide" *ngIf="cartItems.length === 0">
+        <div class="panier-vide-icone">🛒</div>
         <h2>Votre panier est vide</h2>
-        <p>Veillez parcourir le catalogue des produits</p>
-        <button class="btn-primary" [routerLink]="['/produits']" [queryParams]="{category: 'Tout'}">Ajouter au panier</button>
+        <p>Parcourez notre catalogue et ajoutez des produits ou des gammes à votre panier</p>
+        <div class="panier-vide-actions">
+          <button class="btn-decouvrir" [routerLink]="['/produits']">
+            Découvrir nos produits
+          </button>
+          <button class="btn-decouvrir btn-decouvrir-gammes" [routerLink]="['/gammes']">
+            Voir nos gammes
+          </button>
+        </div>
       </div>
+
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-col">
-          <h3 class="footer-logo">
-            <span class="logo-icon">🌸</span>
-            CoBeauty
-          </h3>
-          <p class="footer-desc">
-            Votre destination beauté pour des produits cosmétiques naturels et de qualité supérieure.
-          </p>
-          <div class="social-links">
-            <a href="#" class="social-icon">f</a>
-            <a href="#" class="social-icon">t</a>
-            <a href="#" class="social-icon">in</a>
-            <a href="#" class="social-icon">ig</a>
-          </div>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Catégories</h4>
-          <ul class="footer-links">
-           <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Capillaires'}">Capillaires</a></li>
-            <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Beauté'}" >Beauté</a></li>
-            <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Parfums'}" >Parfums</a></li>
-            <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Corps et visage'}" >Corps et visage</a></li>
-            <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Pédicure manicure'}" >Pédicure manicure</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Informations</h4>
-          <ul class="footer-links">
-            <li><a href="#">À propos</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Livraison</a></li>
-            <li><a href="#">Retours</a></li>
-            <li><a href="#">Politique de confidentialité</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Newsletter</h4>
-          <p class="footer-desc">Inscrivez-vous pour recevoir nos offres exclusives</p>
-          <div class="newsletter-form">
-            <input type="email" placeholder="Votre email" class="newsletter-input">
-            <button class="newsletter-btn">→</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>&copy; 2024 Belletny. Tous droits réservés. Créé avec ❤️ pour la beauté.</p>
-      </div>
-    </div>
-  </footer>
 </div>

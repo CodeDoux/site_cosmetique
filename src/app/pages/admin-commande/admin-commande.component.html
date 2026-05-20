@@ -1,0 +1,385 @@
+<div class="commandes-page">
+
+  <!-- ─── En-tête ─── -->
+  <div class="page-header">
+    <div>
+      <h1>Commandes</h1>
+      <p>Gérez et suivez toutes vos commandes</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-outline" (click)="loadCommandes()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+        </svg>
+        Actualiser
+      </button>
+      <button class="btn-primary" (click)="exportData()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Exporter CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Chargement ─── -->
+  <div class="table-loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement des commandes...</p>
+  </div>
+
+  <!-- ─── Erreur ─── -->
+  <div class="alert-error" *ngIf="hasError && !isLoading">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ errorMsg }}</span>
+    <button (click)="loadCommandes()">Réessayer</button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !hasError">
+
+    <!-- ─── Stats ─── -->
+    <div class="stats-grid">
+      <div *ngFor="let stat of statsCards" class="stat-card" [class]="'stat-' + stat.color">
+        <div class="stat-icon">
+          <ng-container [ngSwitch]="stat.icon">
+            <svg *ngSwitchCase="'orders'"    width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+            <svg *ngSwitchCase="'pending'"   width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <svg *ngSwitchCase="'shipped'"   width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <svg *ngSwitchCase="'done'"      width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg *ngSwitchCase="'cancelled'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </ng-container>
+        </div>
+        <div class="stat-details">
+          <p class="stat-label">{{ stat.title }}</p>
+          <h3 class="stat-value">{{ stat.value }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Filtres ─── -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" [(ngModel)]="searchQuery"
+               (ngModelChange)="onSearchChange()"
+               placeholder="Référence, client, email...">
+      </div>
+
+      <select [(ngModel)]="filterStatut" (ngModelChange)="onFilterChange()">
+        <option value="">Tous les statuts</option>
+        <option value="EN_ATTENTE">En attente</option>
+        <option value="EN_PREPARATION">En préparation</option>
+        <option value="EN_LIVRAISON">En livraison</option>
+        <option value="LIVREE">Livrée</option>
+        <option value="ANNULEE">Annulée</option>
+      </select>
+
+      <select [(ngModel)]="filterDate" (ngModelChange)="onFilterChange()">
+        <option value="">Toutes les dates</option>
+        <option value="today">Aujourd'hui</option>
+        <option value="week">7 derniers jours</option>
+        <option value="month">Ce mois-ci</option>
+      </select>
+
+      <div class="status-tabs">
+        <button [class.active]="activeTab === 'all'"    (click)="setTab('all')">Tout</button>
+        <button [class.active]="activeTab === 'new'"    (click)="setTab('new')">Récentes</button>
+        <button [class.active]="activeTab === 'urgent'" (click)="setTab('urgent')">En attente</button>
+      </div>
+    </div>
+
+    <!-- ─── Tableau ─── -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Liste des commandes</h3>
+        <span>{{ filteredCommandes.length }} commande{{ filteredCommandes.length > 1 ? 's' : '' }}</span>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Client</th>
+              <th>Date</th>
+              <th>Mode livraison</th>
+              <th>Frais</th>
+              <th>Total</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let commande of paginatedCommandes">
+
+              <!-- Référence -->
+              <td class="order-id">{{ commande.reference }}</td>
+
+              <!-- Client -->
+              <td>
+                <div class="customer-cell">
+                  <div class="avatar" [class]="'avatar-' + ['pink','blue','green','amber','purple'][getAvatarIndex(commande)]">
+                    {{ getInitiales(commande) }}
+                  </div>
+                  <div>
+                    <p class="customer-name">{{ getNomClient(commande) }}</p>
+                    <p class="customer-email">{{ getEmailClient(commande) }}</p>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Date -->
+              <td>{{ formatDate(commande.dateCommande) }}</td>
+
+              <!-- Mode livraison -->
+              <td>
+                <span class="payment-badge">{{ getModeLivraisonLabel(commande.modeLivraison) }}</span>
+              </td>
+
+              <!-- Frais -->
+              <td class="items-cell">{{ formatPrix(commande.fraisLivraison) }}</td>
+
+              <!-- Total -->
+              <td class="total-amount">{{ formatPrix(commande.montantTotal) }}</td>
+
+              <!-- Statut -->
+              <td>
+                <span class="status-badge" [class]="getStatutClass(commande.statut)">
+                  <span class="status-dot"></span>
+                  {{ getStatutLabel(commande.statut) }}
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="action-btns">
+
+                  <!-- Voir détail -->
+                  <button class="btn-action" (click)="viewCommande(commande)" title="Voir le détail">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+
+                  <!-- Frais livraison -->
+                  <button class="btn-action"
+                          (click)="openFraisModal(commande)"
+                          title="Modifier les frais"
+                          *ngIf="canUpdateStatut(commande.statut)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="1" y="3" width="15" height="13"/>
+                      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                      <circle cx="5.5" cy="18.5" r="2.5"/>
+                      <circle cx="18.5" cy="18.5" r="2.5"/>
+                    </svg>
+                  </button>
+
+                  <!-- Télécharger facture -->
+                  <button class="btn-action" (click)="telechargerFacture(commande)" title="Télécharger la facture">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                  </button>
+
+                  <!-- Dropdown changement statut (géré par click, pas hover) -->
+                  <div class="status-dropdown-wrap" *ngIf="canUpdateStatut(commande.statut)">
+                    <button class="btn-action"
+                            (click)="toggleDropdown(commande.id); $event.stopPropagation()"
+                            title="Changer le statut">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="1"/>
+                        <circle cx="19" cy="12" r="1"/>
+                        <circle cx="5"  cy="12" r="1"/>
+                      </svg>
+                    </button>
+                    <div class="dropdown-menu-angular"
+                         [class.open]="openDropdownId === commande.id">
+                      <button *ngFor="let s of getStatutsSuivants(commande.statut)"
+                              (click)="updateStatut(commande, s); closeDropdown()"
+                              [class.danger]="s === 'ANNULEE'">
+                        {{ getStatutLabel(s) }}
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </td>
+
+            </tr>
+
+            <!-- Vide -->
+            <tr *ngIf="paginatedCommandes.length === 0">
+              <td colspan="8" class="empty-state">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                </svg>
+                <p>Aucune commande trouvée</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <span class="pag-info">
+          {{ getPaginationStart() }}–{{ getPaginationEnd() }} sur {{ filteredCommandes.length }}
+        </span>
+        <div class="pag-btns">
+          <button class="pag-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">←</button>
+          <button *ngFor="let page of visiblePages" class="pag-btn"
+                  [class.active]="currentPage === page"
+                  (click)="goToPage(page)">{{ page }}</button>
+          <button class="pag-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">→</button>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL DÉTAIL COMMANDE
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showDetail" (click)="closeDetail()">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>Commande {{ selectedCommande?.reference }}</h2>
+      <button class="close-btn" (click)="closeDetail()">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="!isLoadingDetail && selectedCommande">
+
+      <!-- Infos générales -->
+      <div class="detail-grid">
+        <div class="detail-bloc">
+          <h4>Client</h4>
+          <p><strong>{{ getNomClient(selectedCommande) }}</strong></p>
+          <p>{{ getEmailClient(selectedCommande) }}</p>
+          <p *ngIf="selectedCommande.user?.tel">{{ selectedCommande.user?.tel }}</p>
+        </div>
+        <div class="detail-bloc">
+          <h4>Commande</h4>
+          <p>Réf. : <strong>{{ selectedCommande.reference }}</strong></p>
+          <p>Date : {{ formatDateHeure(selectedCommande.dateCommande) }}</p>
+          <p>Mode : {{ getModeLivraisonLabel(selectedCommande.modeLivraison) }}</p>
+        </div>
+        <div class="detail-bloc">
+          <h4>Livraison</h4>
+          <p *ngIf="selectedCommande.livraison?.adresse?.quartier">{{ selectedCommande.livraison?.adresse?.quartier }}</p>
+          <p *ngIf="selectedCommande.livraison?.adresse?.ville">{{ selectedCommande.livraison?.adresse?.ville }}</p>
+          <p *ngIf="selectedCommande.livraison?.statutLivraison">Statut : {{ selectedCommande.livraison?.statutLivraison }}</p>
+        </div>
+        <div class="detail-bloc">
+          <h4>Paiement</h4>
+          <p *ngIf="selectedCommande.paiement?.modePaiement">Méthode : <strong>{{ selectedCommande.paiement?.modePaiement }}</strong></p>
+          <p *ngIf="selectedCommande.paiement?.statutPaiement">Statut : {{ selectedCommande.paiement?.statutPaiement }}</p>
+          <p *ngIf="selectedCommande.paiement?.montant">Montant : {{ formatPrix(selectedCommande.paiement!.montant!) }}</p>
+        </div>
+      </div>
+
+      <!-- Lignes de commande -->
+      <div class="detail-lignes" *ngIf="selectedCommande.lignes_commande?.length">
+        <h4>Articles commandés</h4>
+        <table class="lignes-table">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Type</th>
+              <th>Qté</th>
+              <th>Prix unitaire</th>
+              <th>Sous-total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ligne of selectedCommande.lignes_commande">
+              <td>{{ ligne.produit.nom }}</td>
+              <td>{{ ligne.type  }}</td>
+              <td>{{ ligne.quantite }}</td>
+              <td>{{ formatPrix(ligne.prix) }}</td>
+              <td class="total-amount">{{ formatPrix(ligne.montantLigne) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Récapitulatif financier -->
+      <div class="detail-recap">
+        <div class="recap-ligne">
+          <span>Frais de livraison</span>
+          <span>{{ formatPrix(selectedCommande.fraisLivraison) }}</span>
+        </div>
+        <div class="recap-ligne recap-total">
+          <span>Total</span>
+          <span class="total-amount">{{ formatPrix(selectedCommande.montantTotal) }}</span>
+        </div>
+      </div>
+
+      <!-- Changement de statut depuis le détail -->
+      <div class="detail-actions" *ngIf="canUpdateStatut(selectedCommande.statut)">
+        <h4>Changer le statut</h4>
+        <div class="statut-btns">
+          <button *ngFor="let s of getStatutsSuivants(selectedCommande.statut)"
+                  class="btn-statut"
+                  [class.btn-danger]="s === 'ANNULEE'"
+                  [disabled]="isSaving"
+                  (click)="updateStatut(selectedCommande, s)">
+            {{ getStatutLabel(s) }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-body" *ngIf="isLoadingDetail">
+      <div class="table-loading">
+        <div class="spinner"></div>
+        <p>Chargement du détail...</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL FRAIS DE LIVRAISON
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showFraisModal" (click)="showFraisModal = false">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>Modifier les frais de livraison</h2>
+      <button class="close-btn" (click)="showFraisModal = false">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Frais de livraison (Fr)</label>
+        <input type="number" [(ngModel)]="nouveauxFrais" min="0" placeholder="0">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showFraisModal = false">Annuler</button>
+        <button class="btn-submit" (click)="saveFrais()" [disabled]="isSaving">
+          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

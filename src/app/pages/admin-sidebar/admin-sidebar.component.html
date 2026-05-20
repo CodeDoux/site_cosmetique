@@ -1,0 +1,65 @@
+<aside class="sidebar" [class.collapsed]="!isOpen">
+  <div class="sidebar-header">
+    <div class="logo">
+      <span class="logo-icon">🌸</span>
+      <span class="logo-text" *ngIf="isOpen">CoBeauty Admin</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="nav-item" routerLink="/admin/dashboard" routerLinkActive="active">
+      <span class="nav-icon">📊</span>
+      <span class="nav-text" *ngIf="isOpen">Dashboard</span>
+    </a>
+     <a class="nav-item" routerLink="/admin/admin-categories" routerLinkActive="active">
+      <span class="nav-icon">📁</span>
+      <span class="nav-text" *ngIf="isOpen">Catégories</span>
+    </a>
+     <a class="nav-item" routerLink="/admin/admin-produits" routerLinkActive="active">
+      <span class="nav-icon">🛍️</span>
+      <span class="nav-text" *ngIf="isOpen">Produits</span>
+    </a>
+     <a class="nav-item" routerLink="/admin/admin-gammes" routerLinkActive="active">
+      <span class="nav-icon">🛍️</span>
+      <span class="nav-text" *ngIf="isOpen">Gammes</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/admin-commandes" routerLinkActive="active">
+      <span class="nav-icon">📦</span>
+      <span class="nav-text" *ngIf="isOpen">Commandes</span>
+    </a>
+   
+    
+   
+    <a class="nav-item" routerLink="/admin/admin-paiements" routerLinkActive="active">
+      <span class="nav-icon">📁</span>
+      <span class="nav-text" *ngIf="isOpen">Paiements</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/admin-livraisons" routerLinkActive="active">
+      <span class="nav-icon">📁</span>
+      <span class="nav-text" *ngIf="isOpen">Livraisons</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/admin-promotions" routerLinkActive="active">
+      <span class="nav-icon">📁</span>
+      <span class="nav-text" *ngIf="isOpen">Promotions</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/admin-users" routerLinkActive="active">
+      <span class="nav-icon">👨‍💼</span>
+      <span class="nav-text" *ngIf="isOpen">Users</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/settings" routerLinkActive="active">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-text" *ngIf="isOpen">Settings</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a class="nav-item" routerLink="/home/accueil">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-text" *ngIf="isOpen">Voir le Site</span>
+    </a>
+    <a class="nav-item" (click)="logout()">
+      <span class="nav-icon">🚪</span>
+      <span class="nav-text" *ngIf="isOpen">Déconnexion</span>
+    </a>
+  </div>
+</aside>

@@ -1,0 +1,163 @@
+<div class="app-layout">
+
+  <!-- Header -->
+  <header class="header-top">
+    <div class="container">
+      <div class="header-info">
+        <svg class="icon-phone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+        <span>Service Client: (+221) 78-185-73-13</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-content">
+        <div class="logo" routerLink="/">
+        <img src="images/logo/Logo Toulayskin-03.png" alt="CoBeauty" class="logo-img">
+      </div>
+
+        <div class="search-bar">
+          <input type="text" placeholder="Rechercher..." class="search-input">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </div>
+
+        <div class="nav-icons" >
+          <div class="" routerLink="/login">
+          <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          </div>
+          <div class="cart-wrapper" routerLink="/home/panier">
+            <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span *ngIf="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-menu">
+  
+         <a
+        [routerLink]="['/']"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true, queryParams: 'exact' }"
+        class="menu-item">Accueil</a>
+        
+       <a *ngFor="let item of menuItems"
+        [routerLink]="['/home/produits']"
+        [queryParams]="{category: item}"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true, queryParams: 'exact' }"
+        class="menu-item">{{ item }}</a>
+        <a
+        [routerLink]="['/home/gammes']"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true, queryParams: 'exact' }"
+        class="menu-item">Gammes</a>
+        <a
+        [routerLink]="['/home/contact']"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true, queryParams: 'exact' }"
+        class="menu-item">Contact</a>
+    </div>
+    </div>
+  </nav>
+
+  <!-- layout.component.html — en dehors du router-outlet -->
+<div class="toast-container">
+  <div
+    *ngFor="let toast of toasts$ | async"
+    class="toast"
+    [class.toast-success]="toast.type === 'success'"
+    [class.toast-error]="toast.type === 'error'"
+    [class.toast-info]="toast.type === 'info'">
+    <svg *ngIf="toast.type === 'success'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    {{ toast.message }}
+  </div>
+</div>
+
+  <!-- Contenu des pages enfants -->
+  <main class="main-content-wrapper">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Bouton WhatsApp flottant -->
+  <a href="https://wa.me/781857313" target="_blank" class="whatsapp-btn" aria-label="WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+  </a>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+
+        <div class="footer-col">
+          <div class="footer-logo">
+            <div class="logo" routerLink="/">
+              <img src="images/logo/Logo Toulayskin-05.png" alt="CoBeauty" class="logo-img">
+            </div>
+          </div>
+          <p class="footer-desc">
+            Votre destination beauté pour des produits cosmétiques naturels et de qualité supérieure.
+          </p>
+          <div class="social-links">
+            <a href="#" class="social-icon">f</a>
+            <a href="#" class="social-icon">t</a>
+            <a href="#" class="social-icon">in</a>
+            <a href="#" class="social-icon">ig</a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-title">Catégories</h4>
+          <ul class="footer-links">
+            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Capillaires'}">Capillaires</a></li>
+            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Beauté'}">Beauté</a></li>
+            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Parfums'}">Parfums</a></li>
+            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Corps et visage'}">Corps et visage</a></li>
+            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Pédicure manicure'}">Pédicure manicure</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-title">Informations</h4>
+          <ul class="footer-links">
+            <li><a href="#">À propos</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Livraison</a></li>
+            <li><a href="#">Retours</a></li>
+            <li><a href="#">Politique de confidentialité</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-title">Newsletter</h4>
+          <p class="footer-desc">Inscrivez-vous pour recevoir nos offres exclusives</p>
+          <div class="newsletter-form">
+            <input type="email" placeholder="Votre email" class="newsletter-input">
+            <button class="newsletter-btn">→</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2024 CoBeauty. Tous droits réservés. Créé avec ❤️ pour la beauté.</p>
+      </div>
+    </div>
+  </footer>
+
+</div>

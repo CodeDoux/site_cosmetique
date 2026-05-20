@@ -1,0 +1,369 @@
+<div class="users-page">
+
+  <!-- ─── En-tête ─── -->
+  <div class="page-header">
+    <div>
+      <h1>Utilisateurs</h1>
+      <p>{{ total }} utilisateur{{ total > 1 ? 's' : '' }} au total</p>
+    </div>
+    <button class="btn-add" (click)="openModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Ajouter un utilisateur
+    </button>
+  </div>
+
+  <!-- ─── Chargement ─── -->
+  <div class="table-loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- ─── Erreur ─── -->
+  <div class="alert-error" *ngIf="hasError && !isLoading">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ errorMsg }}</span>
+    <button (click)="loadUsers()">Réessayer</button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !hasError">
+
+    <!-- ─── Stats ─── -->
+    <div class="stats-grid">
+      <div *ngFor="let stat of statsCards" class="stat-card" [class]="'stat-' + stat.color">
+        <div class="stat-icon">
+          <ng-container [ngSwitch]="stat.icon">
+            <svg *ngSwitchCase="'users'"   width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <svg *ngSwitchCase="'client'"  width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+            <svg *ngSwitchCase="'livreur'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <svg *ngSwitchCase="'admin'"   width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </ng-container>
+        </div>
+        <div class="stat-details">
+          <p class="stat-label">{{ stat.title }}</p>
+          <h3 class="stat-value">{{ stat.value }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Filtres ─── -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" [(ngModel)]="searchQuery"
+               (ngModelChange)="onSearchChange()"
+               placeholder="Nom, e-mail, téléphone...">
+      </div>
+
+      <div class="role-tabs">
+        <button [class.active]="filterRole === ''"        (click)="filterRole = ''; onFilterChange()">Tous</button>
+        <button [class.active]="filterRole === 'CLIENT'"  (click)="filterRole = 'CLIENT'; onFilterChange()">Clients</button>
+        <button [class.active]="filterRole === 'LIVREUR'" (click)="filterRole = 'LIVREUR'; onFilterChange()">Livreurs</button>
+        <button [class.active]="filterRole === 'ADMIN'"   (click)="filterRole = 'ADMIN'; onFilterChange()">Admins</button>
+      </div>
+    </div>
+
+    <!-- ─── Tableau ─── -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Liste des utilisateurs</h3>
+        <span>{{ paginationStart }}–{{ paginationEnd }} sur {{ total }}</span>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Utilisateur</th>
+              <th>Téléphone</th>
+              <th>Rôle</th>
+              <th>Inscrit le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+
+              <!-- Utilisateur -->
+              <td>
+                <div class="user-cell">
+                  <div class="avatar" [ngClass]="getAvatarColor(user.id)">
+                    {{ getInitiales(user.nomComplet) }}
+                  </div>
+                  <div>
+                    <p class="user-nom">{{ user.nomComplet }}</p>
+                    <p class="user-email">{{ user.email }}</p>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Téléphone -->
+              <td class="tel-cell">
+                <span *ngIf="user.tel">{{ user.tel }}</span>
+                <span class="text-light" *ngIf="!user.tel">—</span>
+              </td>
+
+              <!-- Rôle -->
+              <td>
+                <div class="role-dropdown-wrap">
+                  <span class="role-badge" [ngClass]="getRoleClass(user.role)">
+                    {{ getRoleLabel(user.role) }}
+                  </span>
+                </div>
+              </td>
+
+              <!-- Date inscription -->
+              <td class="date-cell">
+                {{ formatDate(user.dateInscription ?? user.created_at) }}
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="action-btns">
+                  <!-- Voir détail -->
+                  <button class="btn-action view" (click)="openDetail(user)" title="Voir le détail">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  <!-- Modifier -->
+                  <button class="btn-action edit" (click)="openModal(user)" title="Modifier">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <!-- Supprimer -->
+                  <button class="btn-action delete" (click)="confirmDelete(user)" title="Supprimer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+
+            <!-- Vide -->
+            <tr *ngIf="users.length === 0">
+              <td colspan="5" class="empty-state">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/>
+                </svg>
+                <p>Aucun utilisateur trouvé</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="lastPage > 1">
+        <span class="pag-info">{{ paginationStart }}–{{ paginationEnd }} sur {{ total }}</span>
+        <div class="pag-btns">
+          <button class="pag-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">←</button>
+          <ng-container *ngFor="let p of pagesVisibles">
+            <span *ngIf="p === '...'" class="pag-ellipsis">…</span>
+            <button *ngIf="p !== '...'" class="pag-btn"
+                    [class.active]="currentPage === p"
+                    (click)="goToPage(+p)">{{ p }}</button>
+          </ng-container>
+          <button class="pag-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === lastPage">→</button>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL DÉTAIL UTILISATEUR
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showDetail" (click)="showDetail = false">
+  <div class="modal-content modal-medium" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>Détail utilisateur</h2>
+      <button class="close-btn" (click)="showDetail = false">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedUser">
+
+      <!-- Avatar + nom -->
+      <div class="user-detail-top">
+        <div class="avatar avatar-xl" [ngClass]="getAvatarColor(selectedUser.id)">
+          {{ getInitiales(selectedUser.nomComplet) }}
+        </div>
+        <div>
+          <h3>{{ selectedUser.nomComplet }}</h3>
+          <p>{{ selectedUser.email }}</p>
+          <span class="role-badge" [ngClass]="getRoleClass(selectedUser.role)">
+            {{ getRoleLabel(selectedUser.role) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Infos -->
+      <div class="detail-grid">
+        <div class="detail-bloc" *ngIf="selectedUser.tel">
+          <h4>Téléphone</h4>
+          <p>{{ selectedUser.tel }}</p>
+        </div>
+        <div class="detail-bloc">
+          <h4>Inscrit le</h4>
+          <p>{{ formatDate(selectedUser.dateInscription ?? selectedUser.created_at) }}</p>
+        </div>
+        <div class="detail-bloc">
+          <h4>ID</h4>
+          <p>#{{ selectedUser.id }}</p>
+        </div>
+      </div>
+
+      <!-- Changer le rôle -->
+      <div class="changer-role">
+        <h4>Changer le rôle</h4>
+        <div class="role-options">
+          <button *ngFor="let r of ['CLIENT', 'LIVREUR', 'ADMIN']"
+                  class="role-option-btn"
+                  [class.active]="selectedUser.role === r"
+                  [ngClass]="'role-opt-' + r.toLowerCase()"
+                  (click)="changerRole(selectedUser, $any(r))">
+            {{ getRoleLabel(r) }}
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showDetail = false">Fermer</button>
+        <button class="btn-submit" (click)="showDetail = false; openModal(selectedUser!)">
+          Modifier
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL FORMULAIRE
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModalOnOverlay($event)">
+  <div class="modal-content modal-medium" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>{{ editingUser ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur' }}</h2>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="saveUser()">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nom complet *</label>
+            <input type="text" [(ngModel)]="formData.nomComplet" name="nomComplet"
+                   placeholder="Prénom Nom" required>
+          </div>
+          <div class="form-group">
+            <label>Rôle *</label>
+            <select [(ngModel)]="formData.role" name="role" required>
+              <option value="CLIENT">Client</option>
+              <option value="LIVREUR">Livreur</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>E-mail *</label>
+          <input type="email" [(ngModel)]="formData.email" name="email"
+                 placeholder="email@exemple.com" required>
+        </div>
+
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input type="tel" [(ngModel)]="formData.tel" name="tel"
+                 placeholder="+221 77 000 00 00">
+        </div>
+
+        <div class="form-divider">
+          <span>{{ editingUser ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe' }}</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>{{ editingUser ? 'Nouveau mot de passe' : 'Mot de passe *' }}</label>
+            <input type="password" [(ngModel)]="formData.password" name="password"
+                   [placeholder]="editingUser ? 'Laisser vide pour ne pas changer' : 'Mot de passe'">
+          </div>
+          <div class="form-group">
+            <label>Confirmer</label>
+            <input type="password" [(ngModel)]="formData.password_confirmation" name="password_confirmation"
+                   placeholder="Confirmer le mot de passe">
+          </div>
+        </div>
+
+        <!-- Erreur -->
+        <div class="alert-error" *ngIf="formError" style="margin-top: .5rem">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ formError }}
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="btn-submit" [disabled]="isSaving">
+            {{ isSaving ? 'Enregistrement...' : (editingUser ? 'Mettre à jour' : 'Créer') }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL SUPPRESSION
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="showDeleteModal = false">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>Supprimer l'utilisateur</h2>
+      <button class="close-btn" (click)="showDeleteModal = false">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="delete-confirmation">
+        <div class="delete-avatar" [ngClass]="getAvatarColor(deletingUser?.id ?? 0)">
+          {{ getInitiales(deletingUser?.nomComplet ?? '') }}
+        </div>
+        <p>Voulez-vous vraiment supprimer <strong>{{ deletingUser?.nomComplet }}</strong> ?</p>
+        <p class="user-email-small">{{ deletingUser?.email }}</p>
+        <p class="warning-text">Cette action est irréversible. Toutes les données liées seront perdues.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showDeleteModal = false">Annuler</button>
+        <button class="btn-delete" (click)="deleteUser()" [disabled]="isSaving">
+          {{ isSaving ? 'Suppression...' : 'Supprimer' }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

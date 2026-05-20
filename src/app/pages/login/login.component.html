@@ -1,0 +1,156 @@
+<div class="login-page">
+
+  <!-- Panneau gauche — décoration -->
+  <div class="login-left">
+    <div class="login-left-content">
+      <div class="login-brand">
+        <span class="brand-icon">🌸</span>
+        <span class="brand-name">CoBeauty</span>
+      </div>
+      <div class="login-deco">
+        <div class="deco-circle deco-c1"></div>
+        <div class="deco-circle deco-c2"></div>
+        <div class="deco-circle deco-c3"></div>
+      </div>
+      <div class="login-quote">
+        <h2>Espace<br>administrateur</h2>
+        <p>Gérez vos produits, commandes et clients depuis votre tableau de bord.</p>
+      </div>
+      <div class="login-stats">
+        <div class="login-stat">
+          <span class="stat-val">500+</span>
+          <span class="stat-lbl">Produits</span>
+        </div>
+        <div class="login-stat-sep"></div>
+        <div class="login-stat">
+          <span class="stat-val">1 200+</span>
+          <span class="stat-lbl">Clients</span>
+        </div>
+        <div class="login-stat-sep"></div>
+        <div class="login-stat">
+          <span class="stat-val">98%</span>
+          <span class="stat-lbl">Satisfaction</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panneau droit — formulaire -->
+  <div class="login-right">
+    <div class="login-card">
+
+      <div class="login-header">
+        <h1 class="login-title">Connexion</h1>
+        <p class="login-subtitle">Connectez-vous à votre espace admin</p>
+      </div>
+
+      <form class="login-form" (ngSubmit)="onSubmit()" #loginForm="ngForm">
+
+        <!-- E-mail -->
+        <div class="form-group" [class.has-error]="emailError">
+          <label for="email">Adresse e-mail</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <input
+              type="email"
+              id="email"
+              [(ngModel)]="credentials.email"
+              name="email"
+              placeholder="admin@cobeauty.sn"
+              autocomplete="email"
+              required
+              (input)="clearErrors()">
+          </div>
+          <span class="field-error" *ngIf="emailError">{{ emailError }}</span>
+        </div>
+
+        <!-- Mot de passe -->
+        <div class="form-group" [class.has-error]="passwordError">
+          <label for="password">Mot de passe</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              [(ngModel)]="credentials.password"
+              name="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+              (input)="clearErrors()">
+            <button
+              type="button"
+              class="btn-toggle-pwd"
+              (click)="showPassword = !showPassword"
+              [attr.aria-label]="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+              <svg *ngIf="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg *ngIf="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" *ngIf="passwordError">{{ passwordError }}</span>
+        </div>
+
+        <!-- Options -->
+        <div class="login-options">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe">
+            <span class="checkbox-custom"></span>
+            Se souvenir de moi
+          </label>
+          <a [routerLink]="['/admin/mot-de-passe-oublie']" class="forgot-link">
+            Mot de passe oublié ?
+          </a>
+        </div>
+
+        <!-- Erreur globale -->
+        <div class="alert-error" *ngIf="globalError">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{{ globalError }}</span>
+        </div>
+
+        <!-- Bouton connexion -->
+        <button
+          type="submit"
+          class="btn-login"
+          [class.loading]="isLoading"
+          [disabled]="isLoading">
+          <span class="btn-login-text" *ngIf="!isLoading">
+            Se connecter
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </span>
+          <span class="btn-login-loader" *ngIf="isLoading">
+            <span class="btn-spinner"></span>
+            Connexion en cours...
+          </span>
+        </button>
+
+      </form>
+
+      <p class="login-footer">
+        &copy; {{ currentYear }} CoBeauty — Tous droits réservés.
+      </p>
+
+    </div>
+  </div>
+
+</div>

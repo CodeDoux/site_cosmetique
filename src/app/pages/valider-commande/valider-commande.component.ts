@@ -1,310 +1,366 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 
-interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-  category: string;
+import { PanierService } from '../../services/panier.service';
+import { ProduitPanier } from '../../models/produit-panier';
+import { environment } from '../../../environments/environment';
+import { CommandesService } from '../../services/commande.service';
+import { GammeService } from '../../services/gamme.service';
+
+// ─── Types alignés avec CommandeRequest Laravel ───
+type ModeLivraison = 'DOMICILE' | 'POINT_RELAIS' | 'RETRAIT_MAGASIN';
+type ModePaiement  = 'EN_LIGNE' | 'EN_ESPECE';
+type Operateur     = 'ORANGE_MONEY' | 'WAVE' | 'FREE_MONEY';
+
+interface InviteInfo {
+  nom:      string;
+  email:    string;
+  tel:      string;
+  adresse:  string;
+  ville:    string;
+  quartier: string;
 }
 
-interface ShippingInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
+interface LigneCommande {
+  produit_id?: number;
+  gamme_id?:   number;
+  quantite:    number;
 }
 
-interface PaymentMethod {
-  id: string;
-  name: string;
-  icon: string;
-  description: string;
+interface CommandePayload {
+  modeLivraison: ModeLivraison;
+  adresse_id?:   number;         // si client connecté avec adresse enregistrée
+  codePromo?:    string;
+  lignes:        LigneCommande[];
+  invite?:       InviteInfo;     // si non connecté
+}
+
+interface PaiementPayload {
+  commande_id:   number;
+  modePaiement:  ModePaiement;
+  operateur?:    Operateur;
+  telephone?:    string;
+}
+
+interface PointRelais {
+  id:      number;
+  nom:     string;
+  adresse: string;
+  ville:   string;
 }
 
 @Component({
   selector: 'app-valider-commande',
-  imports: [
-    CommonModule, RouterModule, FormsModule, RouterLink
-  ],
+  imports: [CommonModule, RouterModule, FormsModule, RouterLink],
   encapsulation: ViewEncapsulation.None,
   templateUrl: './valider-commande.component.html',
   styleUrl: './valider-commande.component.css'
 })
-export class ValiderCommandeComponent implements OnInit{
-  currentStep: number = 1;
-  
-  // Shipping Information
-  shippingInfo: ShippingInfo = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: 'Senegal'
+export class ValiderCommandeComponent implements OnInit, OnDestroy {
+
+  storageUrl = environment.storageUrl;
+
+  currentStep = 1;
+
+  // ─── Panier ───
+  cartItems: ProduitPanier[] = [];
+
+  // ─── Code promo ───
+  codePromo   = '';
+  discount    = 0;
+
+  // ─── Étape 1 : Mode de livraison ───
+  modeLivraison: ModeLivraison = 'DOMICILE';
+
+  // Infos invité (si non connecté)
+  inviteInfo: InviteInfo = {
+    nom: '', email: '', tel: '',
+    adresse: '', ville: '', quartier: ''
   };
 
-  saveShippingInfo: boolean = true;
-  sameAsBilling: boolean = true;
-
-  // Payment Methods
-  paymentMethods: PaymentMethod[] = [
-    {
-      id: 'credit-card',
-      name: 'Credit Card',
-      icon: '💳',
-      description: 'Pay securely with your credit card'
-    },
-    {
-      id: 'paypal',
-      name: 'PayPal',
-      icon: '🅿️',
-      description: 'Fast and secure payment via PayPal'
-    },
-    {
-      id: 'mobile-money',
-      name: 'Mobile Money',
-      icon: '📱',
-      description: 'Orange Money, Wave, Free Money'
-    },
-    {
-      id: 'bank-transfer',
-      name: 'Bank Transfer',
-      icon: '🏦',
-      description: 'Direct bank transfer'
-    },
-    {
-      id: 'cash-on-delivery',
-      name: 'Cash on Delivery',
-      icon: '💵',
-      description: 'Pay when you receive your order'
-    }
+  // Points relais (à charger depuis l'API si besoin)
+  pointsRelais: PointRelais[] = [
+    { id: 1, nom: 'Point relais Medina',    adresse: 'Rue 10, Medina',    ville: 'Dakar' },
+    { id: 2, nom: 'Point relais Plateau',   adresse: 'Avenue Peytavin',   ville: 'Dakar' },
+    { id: 3, nom: 'Point relais Parcelles', adresse: 'Cité Fadia',        ville: 'Dakar' },
   ];
+  selectedPointRelaisId: number | null = null;
 
-  selectedPaymentMethod: string = '';
-  
-  // Card Information
-  cardInfo = {
-    number: '',
-    name: '',
-    expiry: '',
-    cvv: ''
-  };
+  // ─── Étape 2 : Paiement ───
+  modePaiement: ModePaiement = 'EN_ESPECE';
 
-  // Mobile Money Information
-  mobileMoneyInfo = {
-    provider: 'Orange Money',
-    phoneNumber: ''
-  };
+  // Mobile Money
+  operateur: Operateur     = 'ORANGE_MONEY';
+  telephone = '';
 
-  // Cart Items (simulé)
-  cartItems: CartItem[] = [
-    {
-      id: 1,
-      name: 'Beauty Ultimate Eye Shadow',
-      price: 113.00,
-      image: 'produit1.jpg',
-      quantity: 2,
-      category: 'Makeup Brushes'
-    },
-    {
-      id: 2,
-      name: 'Nourishing Gold Kesar',
-      price: 126.00,
-      image: 'produit2.jpg',
-      quantity: 1,
-      category: 'Skincare Cream'
-    },
-    {
-      id: 5,
-      name: 'Yunucha Eye Liner',
-      price: 86.00,
-      image: 'produit5.jpg',
-      quantity: 3,
-      category: 'Makeup Lipstick'
-    }
-  ];
+  // ─── États ───
+  isLoading  = false;
+  formError  = '';
+  commandeCreee: number | null = null;
 
-  
+  private subscription = new Subscription();
 
-  discount: number = 20;
-  couponCode: string = 'WELCOME10';
-
-  menuItems: string[] = [
-    'Hair Cream', 
-    'Face Primer', 
-    'Makeup Brushes', 
-    'Perfumes', 
-    'Skincare Cream', 
-    'Makeup Lipstick', 
-    'More'
-  ];
-
-  constructor(private router: Router) {}
+  constructor(
+    private router:           Router,
+    private panierService:    PanierService,
+    private commandesService: CommandesService,
+    private gammeService: GammeService
+  ) {}
 
   ngOnInit(): void {
-    // Vérifier si le panier est vide
+    this.cartItems = this.panierService.getProduits();
+
+    this.subscription.add(
+      this.panierService.getNombreProduits().subscribe(() => {
+        this.cartItems = this.panierService.getProduits();
+      })
+    );
+
     if (this.cartItems.length === 0) {
-      this.router.navigate(['/cart']);
+      this.router.navigate(['/panier']);
     }
   }
-  getSelectedPaymentMethodName(): string {
-  const method = this.paymentMethods.find(m => m.id === this.selectedPaymentMethod);
-  return method ? method.name : '';
-}
 
-  // Calculs
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+
+
+  // ══════════════════════════════════════════
+  // GETTERS FINANCIERS
+  // ══════════════════════════════════════════
+
   get subtotal(): number {
-    return this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return this.panierService.getTotal();
   }
 
-  get shipping(): number {
-    return this.subtotal > 200 ? 0 : 15.00;
-  }
-
-  get tax(): number {
-    return this.subtotal * 0.1;
+  get fraisLivraison(): number {
+    if (this.modeLivraison === 'RETRAIT_MAGASIN') return 0;
+    return this.subtotal >= 50000 ? 0 : 2000;
   }
 
   get total(): number {
-    return this.subtotal + this.shipping + this.tax - this.discount;
+    return this.subtotal + this.fraisLivraison - this.discount;
   }
 
   get cartCount(): number {
-    return this.cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    return this.cartItems.reduce((sum, item) => sum + item.quantite, 0);
   }
 
-  // Navigation entre les étapes
+
+  // ══════════════════════════════════════════
+  // HELPERS
+  // ══════════════════════════════════════════
+
+ getImageUrl(item: ProduitPanier): string {
+  if (item.type === 'GAMME' && item.gamme) {
+    return this.gammeService.getImageUrl(item.gamme);
+  }
+  if (item.type === 'PRODUIT' && item.produit?.image_primaire) {
+    return `${this.storageUrl}/${item.produit.image_primaire.chemin}`;
+  }
+  return 'images/placeholder.jpg';
+}
+
+  formatPrix(montant: number): string {
+    return montant.toLocaleString('fr-FR') + ' Fr';
+  }
+
+  getLivraisonLabel(mode: ModeLivraison): string {
+    const labels: Record<ModeLivraison, string> = {
+      DOMICILE:        'Livraison à domicile',
+      POINT_RELAIS:    'Point relais',
+      RETRAIT_MAGASIN: 'Retrait en magasin',
+    };
+    return labels[mode];
+  }
+
+  getPaiementLabel(mode: ModePaiement): string {
+    return mode === 'EN_LIGNE' ? 'Paiement en ligne' : 'Paiement en espèces';
+  }
+
+  getOperateurLabel(op: Operateur): string {
+    const labels: Record<Operateur, string> = {
+      ORANGE_MONEY: 'Orange Money',
+      WAVE:         'Wave',
+      FREE_MONEY:   'Free Money',
+    };
+    return labels[op];
+  }
+
+  getSelectedPointRelais(): PointRelais | undefined {
+    return this.pointsRelais.find(p => p.id === this.selectedPointRelaisId);
+  }
+
+
+  // ══════════════════════════════════════════
+  // NAVIGATION ÉTAPES
+  // ══════════════════════════════════════════
+
   goToStep(step: number): void {
-    if (step === 2 && !this.validateShippingInfo()) {
-      alert('Please fill in all required shipping information');
-      return;
-    }
-    if (step === 3 && !this.selectedPaymentMethod) {
-      alert('Please select a payment method');
-      return;
-    }
+    if (step === 2 && !this.validateEtape1()) return;
+    if (step === 3 && !this.validateEtape2()) return;
     this.currentStep = step;
+    this.formError   = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   nextStep(): void {
-    if (this.currentStep < 3) {
-      this.goToStep(this.currentStep + 1);
-    }
+    if (this.currentStep < 3) this.goToStep(this.currentStep + 1);
   }
 
   previousStep(): void {
     if (this.currentStep > 1) {
       this.currentStep--;
+      this.formError = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
-  // Validation
-  validateShippingInfo(): boolean {
-    return !!(
-      this.shippingInfo.firstName &&
-      this.shippingInfo.lastName &&
-      this.shippingInfo.email &&
-      this.shippingInfo.phone &&
-      this.shippingInfo.address &&
-      this.shippingInfo.city &&
-      this.shippingInfo.zipCode
-    );
-  }
 
-  validatePaymentInfo(): boolean {
-    if (this.selectedPaymentMethod === 'credit-card') {
-      return !!(
-        this.cardInfo.number &&
-        this.cardInfo.name &&
-        this.cardInfo.expiry &&
-        this.cardInfo.cvv
-      );
+  // ══════════════════════════════════════════
+  // VALIDATIONS
+  // ══════════════════════════════════════════
+
+  validateEtape1(): boolean {
+    this.formError = '';
+
+    // ─── Infos contact obligatoires pour TOUS les modes ───
+    if (!this.inviteInfo.nom.trim()) {
+      this.formError = 'Votre nom est requis.'; return false;
     }
-    if (this.selectedPaymentMethod === 'mobile-money') {
-      return !!this.mobileMoneyInfo.phoneNumber;
+    if (!this.inviteInfo.email.trim()) {
+      this.formError = 'Votre e-mail est requis.'; return false;
     }
-    return true; // Pour les autres méthodes
-  }
-
-  // Sélection du mode de paiement
-  selectPaymentMethod(methodId: string): void {
-    this.selectedPaymentMethod = methodId;
-  }
-
-  // Formater le numéro de carte
-  formatCardNumber(event: any): void {
-    let value = event.target.value.replace(/\s/g, '');
-    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-    this.cardInfo.number = formattedValue;
-  }
-
-  // Formater la date d'expiration
-  formatExpiry(event: any): void {
-    let value = event.target.value.replace(/\D/g, '');
-    if (value.length >= 2) {
-      value = value.slice(0, 2) + '/' + value.slice(2, 4);
-    }
-    this.cardInfo.expiry = value;
-  }
-
-  // Finaliser la commande
-  placeOrder(): void {
-    if (!this.validateShippingInfo()) {
-      alert('Please complete shipping information');
-      this.goToStep(1);
-      return;
+    if (!this.inviteInfo.tel.trim()) {
+      this.formError = 'Votre numéro de téléphone est requis.'; return false;
     }
 
-    if (!this.selectedPaymentMethod) {
-      alert('Please select a payment method');
-      this.goToStep(2);
-      return;
-    }
-
-    if (!this.validatePaymentInfo()) {
-      alert('Please complete payment information');
-      return;
-    }
-
-    // Simuler le traitement de la commande
-    const orderData = {
-      shipping: this.shippingInfo,
-      payment: {
-        method: this.selectedPaymentMethod,
-        details: this.selectedPaymentMethod === 'credit-card' ? this.cardInfo : 
-                this.selectedPaymentMethod === 'mobile-money' ? this.mobileMoneyInfo : null
-      },
-      items: this.cartItems,
-      totals: {
-        subtotal: this.subtotal,
-        shipping: this.shipping,
-        tax: this.tax,
-        discount: this.discount,
-        total: this.total
+    // ─── Adresse obligatoire uniquement pour DOMICILE ───
+    if (this.modeLivraison === 'DOMICILE') {
+      if (!this.inviteInfo.adresse.trim()) {
+        this.formError = 'L\'adresse de livraison est requise.'; return false;
       }
+      if (!this.inviteInfo.ville.trim()) {
+        this.formError = 'La ville est requise.'; return false;
+      }
+    }
+
+    // ─── Point relais sélectionné obligatoire ───
+    if (this.modeLivraison === 'POINT_RELAIS' && !this.selectedPointRelaisId) {
+      this.formError = 'Veuillez sélectionner un point relais.'; return false;
+    }
+
+    return true;
+  }
+
+  validateEtape2(): boolean {
+    this.formError = '';
+
+    if (this.modePaiement === 'EN_LIGNE') {
+      if (!this.operateur) {
+        this.formError = 'Veuillez sélectionner un opérateur.'; return false;
+      }
+      if (!this.telephone.trim()) {
+        this.formError = 'Le numéro de téléphone est requis.'; return false;
+      }
+    }
+
+    return true;
+  }
+
+
+  // ══════════════════════════════════════════
+  // CONSTRUIRE LES PAYLOADS LARAVEL
+  // ══════════════════════════════════════════
+
+ private buildCommandePayload(): any {
+  const lignes = this.cartItems.map(item => {
+    if (item.type === 'GAMME') {
+      return { gamme_id:   item.gamme!.id,   quantite: item.quantite };
+    } else {
+      return { produit_id: item.produit!.id, quantite: item.quantite };
+    }
+  });
+
+  const payload: any = {
+    modeLivraison: this.modeLivraison,
+    lignes,
+    codePromo: this.codePromo || undefined,
+    paiement: {
+      modePaiement: this.modePaiement,
+      operateur:    this.modePaiement === 'EN_LIGNE' ? this.operateur : undefined,
+      telephone:    this.modePaiement === 'EN_LIGNE' ? this.telephone : undefined,
+    }
+  };
+
+  payload.invite = {
+    nom:      this.inviteInfo.nom,
+    email:    this.inviteInfo.email,
+    tel:      this.inviteInfo.tel,
+    adresse:  this.inviteInfo.adresse  || '',
+    ville:    this.inviteInfo.ville    || '',
+    quartier: this.inviteInfo.quartier || '',
+  };
+
+  if (this.modeLivraison === 'POINT_RELAIS') {
+    const relais = this.getSelectedPointRelais();
+    if (relais) {
+      payload.invite.adresse = relais.adresse;
+      payload.invite.ville   = relais.ville;
+    }
+  }
+
+  return payload;
+}
+
+  private buildPaiementPayload(commandeId: number): PaiementPayload {
+    const payload: PaiementPayload = {
+      commande_id:  commandeId,
+      modePaiement: this.modePaiement,
     };
 
-    console.log('Order placed:', orderData);
-    alert('Order placed successfully! Order #' + Math.floor(Math.random() * 100000));
-    
-    // Redirection vers une page de confirmation (à créer)
-    // this.router.navigate(['/order-confirmation']);
-    this.router.navigate(['/']);
+    if (this.modePaiement === 'EN_LIGNE') {
+      payload.operateur  = this.operateur;
+      payload.telephone  = this.telephone;
+    }
+
+    return payload;
   }
 
+
+  // ══════════════════════════════════════════
+  // PASSER LA COMMANDE
+  // ══════════════════════════════════════════
+
+  placeOrder(): void {
+    if (!this.validateEtape1() || !this.validateEtape2()) return;
+
+    this.isLoading = true;
+    this.formError = '';
+
+    const commandePayload = this.buildCommandePayload();
+    console.log('Payload envoyé :', JSON.stringify(commandePayload, null, 2));
+
+    // Un seul appel API — paiement inclus dans le payload
+    this.commandesService.createCommande(commandePayload).subscribe({
+      next: (commande: any) => {
+        console.log('Réponse commande :', commande);
+        // L'API peut retourner { id } ou { data: { id } } ou { commande: { id } }
+        const commandeId = commande?.id ?? commande?.data?.id ?? commande?.commande?.id;
+        this.isLoading     = false;
+        this.commandeCreee = commandeId;
+        this.panierService.viderPanier();
+        this.currentStep   = 4;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.formError = err.message || 'Une erreur est survenue lors de la création de la commande.';
+      }
+    });
+  }
 }

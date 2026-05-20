@@ -1,465 +1,284 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink, RouterModule } from '@angular/router';
+import { RouterLink, RouterModule, ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { Produit, ProduitFilters,Image } from '../../models/produit';
+import { environment } from '../../../environments/environment';
+import { ProduitService } from '../../services/produit.service';
+import { PanierService } from '../../services/panier.service';
+import { ToastService } from '../../services/toast.service';
+import { Categorie } from '../../models/categorie';
+import { CategorieService } from '../../services/categorie.service';
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  oldPrice?: number;
-  image: string;
-  rating: number;
-  badge?: string;
-  category: string;
-  sales: number;
-  description: string;
+interface FiltresPublic extends ProduitFilters {
+  statut?: string;
 }
 
-interface Category {
-  name: string;
-  count: number;
-  icon: string;
+interface CategorieFiltre {
+  nom: string;
+  slug: string;
+  count?: number;
 }
 
 @Component({
-  selector: 'app-produit',
-  imports: [
-    CommonModule,
-    RouterLink,
-  FormsModule,
-  RouterModule ],
+  selector: 'app-produits',
+  imports: [CommonModule, FormsModule, RouterLink, RouterModule],
   encapsulation: ViewEncapsulation.None,
   templateUrl: './produit.component.html',
   styleUrl: './produit.component.css'
 })
-export class ProduitComponent implements OnInit{
+export class ProduitComponent implements OnInit, OnDestroy {
 
-  cartCount: number = 0;
-  searchQuery: string = '';
-  selectedCategory: string = 'all';
-  selectedSort: string = 'default';
-  priceRange: { min: number, max: number } = { min: 0, max: 500 };
-  currentPriceRange: { min: number, max: number } = { min: 0, max: 500 };
-  
-  categories: Category[] = [
-    { name: 'Tout', count: 24, icon: '🛍️' },
-    { name: 'Capillaires', count: 5, icon: '💆‍♀️' },
-    { name: 'Beauté', count: 4, icon: '💄' },
-    { name: 'Parfums', count: 3, icon: '🌸' },
-    { name: 'Corps et visage', count: 6, icon: '🧴' },
-    { name: 'Pédicure manicure', count: 4, icon: '🖌️' },
-    { name: 'Hygiéne', count: 2, icon: '✨' }
-  ];
+  storageUrl = 'http://127.0.0.1:8000/storage';
 
-  allProducts: Product[] = [
-    { 
-      id: 1, 
-      name: 'Beauty Ultimate Eye Shadow', 
-      price: 113.00, 
-      image: 'produit1.jpg', 
-      rating: 5, 
-      badge: '5% OFF',
-      category: 'Beauté',
-      sales: 250,
-      description: 'Professional eye shadow palette with rich pigmentation'
-    },
-    { 
-      id: 2, 
-      name: 'Nourishing Gold Kesar', 
-      price: 126.00, 
-      oldPrice: 130.00, 
-      image: 'produit2.jpg', 
-      rating: 5, 
-      badge: '8% OFF',
-      category: 'Corps et visage',
-      sales: 320,
-      description: 'Luxurious gold kesar cream for radiant skin'
-    },
-    { 
-      id: 3, 
-      name: 'Fab Karat Glow Combo', 
-      price: 134.00, 
-      oldPrice: 137.00, 
-      image: 'produit3.jpg', 
-      rating: 5, 
-      badge: '9% OFF',
-      category: 'Beauté',
-      sales: 180,
-      description: 'Complete glow combo for stunning makeup looks'
-    },
-    { 
-      id: 4, 
-      name: 'Makeup Success Kits', 
-      price: 120.00, 
-      oldPrice: 128.00, 
-      image: 'produit4.jpg', 
-      rating: 4, 
-      badge: '8% OFF',
-      category: 'Beauté',
-      sales: 290,
-      description: 'Complete makeup kit for professionals'
-    },
-    { 
-      id: 5, 
-      name: 'Yunucha Eye Liner', 
-      price: 86.00, 
-      oldPrice: 98.00, 
-      image: 'produit5.jpg', 
-      rating: 5, 
-      badge: '12% OFF',
-      category: 'Beauté',
-      sales: 410,
-      description: 'Long-lasting waterproof eye liner'
-    },
-    { 
-      id: 6, 
-      name: 'Matte Poreless Liquid Tube', 
-      price: 122.00, 
-      oldPrice: 140.00, 
-      image: 'produit6.jpg', 
-      rating: 5, 
-      badge: '15% OFF',
-      category: 'Corps et visage',
-      sales: 380,
-      description: 'Matte finish foundation for flawless skin'
-    },
-    { 
-      id: 7, 
-      name: 'Kobo Beauty Canvas Kit', 
-      price: 104.00, 
-      image: 'produit7.jpg', 
-      rating: 5, 
-      badge: '7% OFF',
-      category: 'Corps et visage',
-      sales: 210,
-      description: 'Professional makeup brush collection'
-    },
-    { 
-      id: 8, 
-      name: 'Renee Skin Prep Combo', 
-      price: 115.00, 
-      oldPrice: 135.00, 
-      image: 'produit8.jpg', 
-      rating: 5, 
-      badge: '8% OFF',
-      category: 'Parfums',
-      sales: 340,
-      description: 'Complete skin preparation combo'
-    },
-    { 
-      id: 9, 
-      name: 'My Tyas Fashion Makeup Kit', 
-      price: 108.00, 
-      image: 'produit9.jpg', 
-      rating: 5,
-      category: 'Parfums',
-      sales: 275,
-      description: 'Fashion-forward makeup essentials'
-    },
-    { 
-      id: 10, 
-      name: 'Swiss Beauty Blusher', 
-      price: 110.00, 
-      oldPrice: 125.00, 
-      image: 'produit10.jpg', 
-      rating: 4, 
-      badge: '8% OFF',
-      category: 'Hygiéne',
-      sales: 195,
-      description: 'Natural glow blush for all skin tones'
-    },
-    { 
-      id: 11, 
-      name: 'Lavender Dream Perfume', 
-      price: 89.00, 
-      image: 'produit11.jpg', 
-      rating: 5,
-      category: 'Parfums',
-      sales: 420,
-      description: 'Long-lasting lavender fragrance'
-    },
-    { 
-      id: 12, 
-      name: 'Argan Oil Hair Serum', 
-      price: 95.00, 
-      oldPrice: 110.00, 
-      image: 'produit12.jpg', 
-      rating: 4, 
-      badge: '14% OFF',
-      category: 'Capillaires',
-      sales: 360,
-      description: 'Nourishing argan oil for silky hair'
-    },
-    { 
-      id: 13, 
-      name: 'Rose Gold Highlighter', 
-      price: 78.00, 
-      image: 'produit13.jpg', 
-      rating: 5,
-      category: 'Capillaires',
-      sales: 310,
-      description: 'Radiant rose gold highlighter'
-    },
-    { 
-      id: 14, 
-      name: 'Vitamin C Serum', 
-      price: 145.00, 
-      oldPrice: 160.00, 
-      image: 'produit14.jpg', 
-      rating: 5, 
-      badge: '10% OFF',
-      category: 'Hygiéne',
-      sales: 450,
-      description: 'Brightening vitamin C serum'
-    },
-    { 
-      id: 15, 
-      name: 'Coconut Hair Mask', 
-      price: 92.00, 
-      image: 'produit15.jpg', 
-      rating: 4,
-      category: 'Capillaires',
-      sales: 240,
-      description: 'Deep conditioning coconut hair mask'
-    },
-    { 
-      id: 16, 
-      name: 'Floral Essence Perfume', 
-      price: 125.00, 
-      oldPrice: 140.00, 
-      image: 'produit16.jpg', 
-      rating: 5, 
-      badge: '11% OFF',
-      category: 'Autres',
-      sales: 390,
-      description: 'Elegant floral perfume blend'
-    },
-    { 
-      id: 17, 
-      name: 'Keratin Hair Treatment', 
-      price: 118.00, 
-      image: 'produit17.jpg', 
-      rating: 5,
-      category: 'Autres',
-      sales: 280,
-      description: 'Professional keratin treatment'
-    },
-    { 
-      id: 18, 
-      name: 'Matte Lipstick Set', 
-      price: 98.00, 
-      oldPrice: 115.00, 
-      image: 'produit18.jpg', 
-      rating: 4, 
-      badge: '15% OFF',
-      category: 'Autres',
-      sales: 470,
-      description: 'Collection of matte lipstick shades'
-    },
-    { 
-      id: 19, 
-      name: 'Hyaluronic Acid Moisturizer', 
-      price: 135.00, 
-      image: 'produit19.jpg', 
-      rating: 5,
-      category: 'Beauté',
-      sales: 430,
-      description: 'Intense hydration moisturizer'
-    },
-    { 
-      id: 20, 
-      name: 'Professional Brush Set', 
-      price: 156.00, 
-      oldPrice: 175.00, 
-      image: 'produit20.jpg', 
-      rating: 5, 
-      badge: '11% OFF',
-      category: 'Capillaires',
-      sales: 325,
-      description: 'Complete professional brush collection'
-    },
-    { 
-      id: 21, 
-      name: 'Midnight Oud Perfume', 
-      price: 168.00, 
-      image: 'produit21.jpg', 
-      rating: 5,
-      category: 'Parfums',
-      sales: 295,
-      description: 'Luxurious oud fragrance'
-    },
-    { 
-      id: 22, 
-      name: 'Silk Protein Hair Cream', 
-      price: 102.00, 
-      oldPrice: 120.00, 
-      image: 'produit22.jpg', 
-      rating: 4, 
-      badge: '15% OFF',
-      category: 'Autres',
-      sales: 350,
-      description: 'Smoothing silk protein treatment'
-    },
-    { 
-      id: 23, 
-      name: 'Retinol Night Cream', 
-      price: 178.00, 
-      image: 'produit23.jpg', 
-      rating: 5,
-      category: 'Corps et visage',
-      sales: 485,
-      description: 'Anti-aging retinol night cream'
-    },
-    { 
-      id: 24, 
-      name: 'Collagen Hair Serum', 
-      price: 88.00, 
-      oldPrice: 98.00, 
-      image: 'produit24.jpg', 
-      rating: 4, 
-      badge: '10% OFF',
-      category: 'Pédicure manicure',
-      sales: 265,
-      description: 'Strengthening collagen hair serum'
-    }
-  ];
+  // ─── Données ───
+  produits: Produit[] = [];
+  categories: Categorie[] = [];
 
-  filteredProducts: Product[] = [];
+  loadCategories(): void {
+  this.categorieService.getAll().subscribe({
+      next: (res: any) => {
+        const cats = Array.isArray(res) ? res : (res?.data ?? []);
+        this.categories = cats.map((c: any) => c.nom);
+      },
+      error: () => {
+      }
+    });
+}
 
-  menuItems: string[] = [
-    'Capillaires', 
-    'Beauté', 
-    'Parfums', 
-    'Corps et visage', 
-    'Pédicure manicure', 
-    'Hygiéne', 
-    'Autres'
-  ];
+  // ─── Pagination ───
+  currentPage = 1;
+  lastPage    = 1;
+  total       = 0;
+
+  // ─── Filtres ───
+  filters: FiltresPublic = {
+    en_promo: undefined,
+    marque: '',
+    search:    '',
+    categorie: '',
+    prix_min:  undefined,
+    prix_max:  undefined,
+    statut:    '',
+    sort:      'nom-asc',
+    per_page:  12
+  };
+
+  // ─── Vue ───
+  currentView: 'grid' | 'list' = 'grid';
+  sidebarOpen = false;
+
+  // ─── États ───
+  isLoading = false;
+  hasError  = false;
+
+  // ─── Gestion des images actives par produit ───
+  private activeImageMap = new Map<number, number>();
+
+  // ─── Aperçu rapide ───
+  apercuProduit: Produit | null = null;
+  apercuQte = 1;
+
+  private destroy$     = new Subject<void>();
+  private searchSubject = new Subject<string>();
 
   constructor(
-  private route: ActivatedRoute,
-  private router: Router
-) {}
+    private produitService: ProduitService,
+    private panierService:  PanierService,
+    private route:          ActivatedRoute,
+    private toastService: ToastService,
+    private categorieService: CategorieService
+  ) {}
+
   ngOnInit(): void {
-    this.filteredProducts = [...this.allProducts];
-    this.updatePriceRange();
+    // Lire les queryParams (depuis accueil, gammes…)
+    this.loadCategories();
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      if (params['category']) this.filters.categorie = params['category'];
+      if (params['search'])   this.filters.search    = params['search'];
+      if (params['gamme'])    this.filters.categorie  = params['gamme'];
+      if (params['marque'])    this.filters.marque  = params['marque'];
+      if (params['en_promo'])    this.filters.en_promo  = params['en_promo'];
+      this.loadProduits();
+    });
 
-    // Écouter les paramètres de route
-  this.route.queryParams.subscribe(params => {
-    if (params['category']) {
-      this.selectedCategory = params['category'];
-    }
-    if (params['search']) {
-      this.searchQuery = params['search'];
-    }
-    this.filterProducts();
-  });
+    // Debounce recherche
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.currentPage = 1;
+      this.loadProduits();
+    });
   }
 
-  updatePriceRange(): void {
-    const prices = this.allProducts.map(p => p.price);
-    this.priceRange.min = Math.floor(Math.min(...prices));
-    this.priceRange.max = Math.ceil(Math.max(...prices));
-    this.currentPriceRange = { ...this.priceRange };
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  filterProducts(): void {
-    let filtered = [...this.allProducts];
+  // ══════════════════════════════════════════
+  // CHARGEMENT
+  // ══════════════════════════════════════════
 
-    // Filter by category
-    if (this.selectedCategory !== 'Tout') {
-      filtered = filtered.filter(p => p.category === this.selectedCategory);
-    }
+  loadProduits(): void {
+    this.isLoading = true;
+    this.hasError  = false;
 
-    // Filter by search query
-    if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(query) || 
-        p.description.toLowerCase().includes(query)
-      );
-    }
+    const params: ProduitFilters = {
+      en_promo: this.filters.en_promo,
+      marque: this.filters.marque    || undefined,
+      search:    this.filters.search    || undefined,
+      categorie: this.filters.categorie || undefined,
+      prix_min:  this.filters.prix_min  ?? undefined,
+      prix_max:  this.filters.prix_max  ?? undefined,
+      sort:      this.filters.sort,
+      page:      this.currentPage,
+      per_page:  this.filters.per_page
+    };
 
-    // Filter by price range
-    filtered = filtered.filter(p => 
-      p.price >= this.currentPriceRange.min && 
-      p.price <= this.currentPriceRange.max
-    );
-
-    // Sort products
-    switch (this.selectedSort) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'bestseller':
-        filtered.sort((a, b) => b.sales - a.sales);
-        break;
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'name':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-    }
-
-    this.filteredProducts = filtered;
+    this.produitService.getProduits(params).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res) => {
+        this.produits    = res.data;
+        this.lastPage    = res.last_page;
+        this.total       = res.total;
+        this.currentPage = res.current_page;
+        this.isLoading   = false;
+      },
+      error: () => {
+        this.hasError  = true;
+        this.isLoading = false;
+      }
+    });
   }
 
-  selectCategory(category: string): void {
-    this.selectedCategory = category === 'All Products' ? 'all' : category;
-    this.filterProducts();
+  // ══════════════════════════════════════════
+  // FILTRES & PAGINATION
+  // ══════════════════════════════════════════
+
+  onSearchChange(): void { this.searchSubject.next(this.filters.search ?? ''); }
+
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.sidebarOpen = false;
+    this.loadProduits();
   }
 
-  onSearchChange(): void {
-    this.filterProducts();
+  resetFiltres(): void {
+    this.filters = {
+      marque: '', search: '', categorie: '', prix_min: undefined,
+      prix_max: undefined, statut: '', sort: 'nom-asc', per_page: 12
+    };
+    this.currentPage = 1;
+    this.loadProduits();
   }
 
-  onSortChange(): void {
-    this.filterProducts();
+  get nbFiltresActifs(): number {
+    let n = 0;
+    if (this.filters.marque)    n++;
+    if (this.filters.search)    n++;
+    if (this.filters.categorie) n++;
+    if (this.filters.prix_min)  n++;
+    if (this.filters.prix_max)  n++;
+    if (this.filters.statut)    n++;
+    return n;
   }
 
-  onPriceRangeChange(): void {
-    this.filterProducts();
+  goToPage(page: number): void {
+    if (page < 1 || page > this.lastPage) return;
+    this.currentPage = page;
+    this.loadProduits();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  resetFilters(): void {
-    this.searchQuery = '';
-    this.selectedCategory = 'all';
-    this.selectedSort = 'default';
-    this.currentPriceRange = { ...this.priceRange };
-    this.filterProducts();
+  get pagesVisibles(): (number | '...')[] {
+    const total = this.lastPage;
+    const cur   = this.currentPage;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: (number | '...')[] = [1];
+    if (cur > 3) pages.push('...');
+    for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i);
+    if (cur < total - 2) pages.push('...');
+    pages.push(total);
+    return pages;
   }
 
-  addToCart(product: Product): void {
-    this.cartCount++;
-    console.log('Product added to cart:', product);
+  // ══════════════════════════════════════════
+  // VUE
+  // ══════════════════════════════════════════
+
+  setView(v: 'grid' | 'list'): void { this.currentView = v; }
+
+  // ══════════════════════════════════════════
+  // GESTION DES IMAGES
+  // ══════════════════════════════════════════
+
+  getActiveIndex(produit: Produit): number {
+    return this.activeImageMap.get(produit.id!) ?? 0;
   }
 
-  addToWishlist(product: Product): void {
-    console.log('Product added to wishlist:', product);
+  setActiveImage(produit: Produit, index: number): void {
+    this.activeImageMap.set(produit.id!, index);
   }
 
-  quickView(product: Product): void {
-    console.log('Quick view:', product);
+  // Au survol : afficher la 2e image si elle existe
+  setHoverImage(produit: Produit, direction: 0 | 1): void {
+    if (!produit.images || produit.images.length < 2) return;
+    const idx = direction === 1 ? 1 : 0;
+    this.activeImageMap.set(produit.id!, idx);
   }
 
-  getStars(rating: number): number[] {
-    return Array(5).fill(0).map((_, i) => i);
+  getImagePrimaire(produit: Produit): string {
+    return this.produitService.getImagePrimaire(produit, this.storageUrl);
   }
 
-  isStarFilled(index: number, rating: number): boolean {
-    return index < rating;
+  getImageUrl(chemin: String): string {
+    return `${this.storageUrl}/${chemin}`;
   }
 
-  getCategoryCount(categoryName: string): number {
-    if (categoryName === 'All Products') {
-      return this.allProducts.length;
-    }
-    return this.allProducts.filter(p => p.category === categoryName).length;
+  // ══════════════════════════════════════════
+  // PANIER & FAVORIS
+  // ══════════════════════════════════════════
+
+  ajouterAuPanier(produit: Produit): void {
+    if (produit.statut === 'EN_RUPTURE') return;
+    this.panierService.ajouterProduit(produit, 1);
+    this.toastService.show(`✓ ${produit.nom} ajouté au panier`);
   }
 
+  ajouterAuPanierQte(produit: Produit): void {
+    if (produit.statut === 'EN_RUPTURE') return;
+    this.panierService.ajouterProduit(produit, this.apercuQte);
+    this.apercuProduit = null;
+    this.apercuQte = 1;
+  }
+
+  ajouterAuxFavoris(produit: Produit): void {
+    console.log('Favoris :', produit.nom);
+  }
+
+  // ══════════════════════════════════════════
+  // APERÇU RAPIDE
+  // ══════════════════════════════════════════
+
+  ouvrirApercu(produit: Produit): void {
+    this.apercuProduit = produit;
+    this.apercuQte     = 1;
+  }
+
+  // ══════════════════════════════════════════
+  // HELPERS
+  // ══════════════════════════════════════════
+
+  formatPrix(prix: number): string {
+    return prix.toLocaleString('fr-FR') + ' Fr';
+  }
+
+  getReduction(produit: Produit): number {
+    if (!produit.prixPromo) return 0;
+    return Math.round((1 - produit.prixPromo / produit.prix) * 100);
+  }
 }

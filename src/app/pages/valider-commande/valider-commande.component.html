@@ -1,572 +1,557 @@
-<div class="min-h-screen bg-white">
-  <!-- Header -->
-  <header class="header-top">
-    <div class="container">
-      <div class="header-info">
-        <svg class="icon-phone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-        </svg>
-        <span>Customer Service: (+33) 123-456-789</span>
-      </div>
-    </div>
-  </header>
+<div class="checkout-page">
 
-  <!-- Navigation -->
-  <nav class="navbar">
-    <div class="container">
-      <div class="nav-content">
-        <div class="logo" [routerLink]="['/']">
-          <span class="logo-icon">🌸</span>
-          Belletny
-        </div>
-        
-        <div class="search-bar">
-          <input type="text" placeholder="Search..." class="search-input">
-          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
-        </div>
-
-        <div class="nav-icons">
-          <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <div class="cart-wrapper" [routerLink]="['/cart']">
-            <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="9" cy="21" r="1"></circle>
-              <circle cx="20" cy="21" r="1"></circle>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
-            <span *ngIf="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="nav-menu">
-        <a *ngFor="let item of menuItems" 
-           [routerLink]="['/products']" 
-           [queryParams]="{category: item}" 
-           class="menu-item">{{ item }}</a>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Breadcrumb -->
+  <!-- Fil d'ariane -->
   <div class="breadcrumb">
     <div class="container">
-      <a [routerLink]="['/']">Home</a>
+      <a [routerLink]="['/']">Accueil</a>
       <span class="separator">/</span>
-      <a [routerLink]="['/cart']">Cart</a>
+      <a [routerLink]="['/panier']">Panier</a>
       <span class="separator">/</span>
-      <span class="current">Checkout</span>
+      <span class="current">Validation de commande</span>
     </div>
   </div>
 
-  <!-- Checkout Content -->
   <section class="checkout-section">
     <div class="container">
-      <h1 class="page-title">Checkout</h1>
+      <h1 class="page-title">Validation de commande</h1>
 
-      <!-- Progress Steps -->
-      <div class="progress-steps">
-        <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
-          <div class="step-number">1</div>
-          <div class="step-info">
-            <p class="step-title">Shipping</p>
-            <p class="step-subtitle">Delivery information</p>
-          </div>
-        </div>
-        <div class="step-line" [class.active]="currentStep >= 2"></div>
-        <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
-          <div class="step-number">2</div>
-          <div class="step-info">
-            <p class="step-title">Payment</p>
-            <p class="step-subtitle">Payment method</p>
-          </div>
-        </div>
-        <div class="step-line" [class.active]="currentStep >= 3"></div>
-        <div class="step" [class.active]="currentStep >= 3">
-          <div class="step-number">3</div>
-          <div class="step-info">
-            <p class="step-title">Review</p>
-            <p class="step-subtitle">Order summary</p>
-          </div>
+      <!-- ══════════════════════════════════
+           ÉTAPE 4 : CONFIRMATION
+      ══════════════════════════════════ -->
+      <div class="confirmation-card" *ngIf="currentStep === 4">
+        <div class="confirmation-icone">✅</div>
+        <h2>Commande confirmée !</h2>
+        <p>Votre commande <strong>#{{ commandeCreee }}</strong> a bien été enregistrée.</p>
+        <p class="confirmation-sub">Vous recevrez un e-mail de confirmation très prochainement.</p>
+        <div class="confirmation-actions">
+          <a [routerLink]="['/']" class="btn-retour-accueil">Retour à l'accueil</a>
+          <a [routerLink]="['/produits']" class="btn-continuer-achats">Continuer mes achats</a>
         </div>
       </div>
 
-      <div class="checkout-layout">
-        <!-- Main Content -->
-        <div class="checkout-main">
-          
-          <!-- STEP 1: Shipping Information -->
-          <div class="checkout-step" *ngIf="currentStep === 1">
-            <div class="step-header">
-              <h2>Shipping Information</h2>
-              <p>Please enter your delivery details</p>
-            </div>
+      <!-- Contenu principal (étapes 1-3) -->
+      <ng-container *ngIf="currentStep < 4">
 
-            <form class="shipping-form">
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="firstName">First Name *</label>
-                  <input 
-                    type="text" 
-                    id="firstName" 
-                    [(ngModel)]="shippingInfo.firstName"
-                    name="firstName"
-                    placeholder="Enter first name"
-                    required>
-                </div>
-                <div class="form-group">
-                  <label for="lastName">Last Name *</label>
-                  <input 
-                    type="text" 
-                    id="lastName" 
-                    [(ngModel)]="shippingInfo.lastName"
-                    name="lastName"
-                    placeholder="Enter last name"
-                    required>
-                </div>
-              </div>
+        <!-- Étapes de progression -->
+        <div class="etapes-progression">
 
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="email">Email Address *</label>
-                  <input 
-                    type="email" 
-                    id="email" 
-                    [(ngModel)]="shippingInfo.email"
-                    name="email"
-                    placeholder="your.email@example.com"
-                    required>
-                </div>
-                <div class="form-group">
-                  <label for="phone">Phone Number *</label>
-                  <input 
-                    type="tel" 
-                    id="phone" 
-                    [(ngModel)]="shippingInfo.phone"
-                    name="phone"
-                    placeholder="+221 XX XXX XX XX"
-                    required>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="address">Address *</label>
-                <input 
-                  type="text" 
-                  id="address" 
-                  [(ngModel)]="shippingInfo.address"
-                  name="address"
-                  placeholder="Street address, apartment, suite, etc."
-                  required>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="city">City *</label>
-                  <input 
-                    type="text" 
-                    id="city" 
-                    [(ngModel)]="shippingInfo.city"
-                    name="city"
-                    placeholder="City"
-                    required>
-                </div>
-                <div class="form-group">
-                  <label for="state">State / Region</label>
-                  <input 
-                    type="text" 
-                    id="state" 
-                    [(ngModel)]="shippingInfo.state"
-                    name="state"
-                    placeholder="State">
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="zipCode">ZIP / Postal Code *</label>
-                  <input 
-                    type="text" 
-                    id="zipCode" 
-                    [(ngModel)]="shippingInfo.zipCode"
-                    name="zipCode"
-                    placeholder="Postal code"
-                    required>
-                </div>
-                <div class="form-group">
-                  <label for="country">Country *</label>
-                  <select 
-                    id="country" 
-                    [(ngModel)]="shippingInfo.country"
-                    name="country"
-                    required>
-                    <option value="Senegal">Senegal</option>
-                    <option value="France">France</option>
-                    <option value="USA">United States</option>
-                    <option value="Canada">Canada</option>
-                    <option value="UK">United Kingdom</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-checkbox">
-                <input 
-                  type="checkbox" 
-                  id="saveInfo" 
-                  [(ngModel)]="saveShippingInfo"
-                  name="saveInfo">
-                <label for="saveInfo">Save this information for next time</label>
-              </div>
-
-              <div class="form-checkbox">
-                <input 
-                  type="checkbox" 
-                  id="sameAsBilling" 
-                  [(ngModel)]="sameAsBilling"
-                  name="sameAsBilling">
-                <label for="sameAsBilling">Billing address same as shipping</label>
-              </div>
-            </form>
-
-            <div class="step-actions">
-              <button class="btn-back" [routerLink]="['/cart']">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <line x1="19" y1="12" x2="5" y2="12"></line>
-                  <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Back to Cart
-              </button>
-              <button class="btn-next" (click)="nextStep()">
-                Continue to Payment
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- STEP 2: Payment Method -->
-          <div class="checkout-step" *ngIf="currentStep === 2">
-            <div class="step-header">
-              <h2>Payment Method</h2>
-              <p>Select your preferred payment method</p>
-            </div>
-
-            <div class="payment-methods">
-              <div 
-                *ngFor="let method of paymentMethods" 
-                class="payment-method"
-                [class.selected]="selectedPaymentMethod === method.id"
-                (click)="selectPaymentMethod(method.id)">
-                <div class="method-icon">{{ method.icon }}</div>
-                <div class="method-info">
-                  <h3>{{ method.name }}</h3>
-                  <p>{{ method.description }}</p>
-                </div>
-                <div class="method-radio">
-                  <input 
-                    type="radio" 
-                    [id]="method.id" 
-                    [value]="method.id"
-                    [(ngModel)]="selectedPaymentMethod"
-                    name="paymentMethod">
-                </div>
-              </div>
-            </div>
-
-            <!-- Credit Card Form -->
-            <div class="payment-details" *ngIf="selectedPaymentMethod === 'credit-card'">
-              <h3>Card Details</h3>
-              <form class="card-form">
-                <div class="form-group">
-                  <label for="cardNumber">Card Number</label>
-                  <input 
-                    type="text" 
-                    id="cardNumber" 
-                    [(ngModel)]="cardInfo.number"
-                    (input)="formatCardNumber($event)"
-                    name="cardNumber"
-                    placeholder="1234 5678 9012 3456"
-                    maxlength="19">
-                </div>
-                <div class="form-group">
-                  <label for="cardName">Cardholder Name</label>
-                  <input 
-                    type="text" 
-                    id="cardName" 
-                    [(ngModel)]="cardInfo.name"
-                    name="cardName"
-                    placeholder="Name on card">
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="expiry">Expiry Date</label>
-                    <input 
-                      type="text" 
-                      id="expiry" 
-                      [(ngModel)]="cardInfo.expiry"
-                      (input)="formatExpiry($event)"
-                      name="expiry"
-                      placeholder="MM/YY"
-                      maxlength="5">
-                  </div>
-                  <div class="form-group">
-                    <label for="cvv">CVV</label>
-                    <input 
-                      type="text" 
-                      id="cvv" 
-                      [(ngModel)]="cardInfo.cvv"
-                      name="cvv"
-                      placeholder="123"
-                      maxlength="3">
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <!-- Mobile Money Form -->
-            <div class="payment-details" *ngIf="selectedPaymentMethod === 'mobile-money'">
-              <h3>Mobile Money Details</h3>
-              <form class="mobile-money-form">
-                <div class="form-group">
-                  <label for="provider">Provider</label>
-                  <select 
-                    id="provider" 
-                    [(ngModel)]="mobileMoneyInfo.provider"
-                    name="provider">
-                    <option value="Orange Money">Orange Money</option>
-                    <option value="Wave">Wave</option>
-                    <option value="Free Money">Free Money</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="mobileNumber">Phone Number</label>
-                  <input 
-                    type="tel" 
-                    id="mobileNumber" 
-                    [(ngModel)]="mobileMoneyInfo.phoneNumber"
-                    name="mobileNumber"
-                    placeholder="+221 XX XXX XX XX">
-                </div>
-              </form>
-            </div>
-
-            <div class="step-actions">
-              <button class="btn-back" (click)="previousStep()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <line x1="19" y1="12" x2="5" y2="12"></line>
-                  <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Back to Shipping
-              </button>
-              <button class="btn-next" (click)="nextStep()">
-                Review Order
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- STEP 3: Review Order -->
-          <div class="checkout-step" *ngIf="currentStep === 3">
-            <div class="step-header">
-              <h2>Review Your Order</h2>
-              <p>Please review your order before placing it</p>
-            </div>
-
-            <!-- Shipping Summary -->
-            <div class="review-section">
-              <div class="review-header">
-                <h3>Shipping Information</h3>
-                <button class="btn-edit" (click)="goToStep(1)">Edit</button>
-              </div>
-              <div class="review-content">
-                <p><strong>{{ shippingInfo.firstName }} {{ shippingInfo.lastName }}</strong></p>
-                <p>{{ shippingInfo.address }}</p>
-                <p>{{ shippingInfo.city }}, {{ shippingInfo.state }} {{ shippingInfo.zipCode }}</p>
-                <p>{{ shippingInfo.country }}</p>
-                <p>Email: {{ shippingInfo.email }}</p>
-                <p>Phone: {{ shippingInfo.phone }}</p>
-              </div>
-            </div>
-
-            <!-- Payment Summary -->
-            <div class="review-section">
-              <div class="review-header">
-                <h3>Payment Method</h3>
-                <button class="btn-edit" (click)="goToStep(2)">Edit</button>
-              </div>
-              <div class="review-content">
-                <p><strong>{{ getSelectedPaymentMethodName() }}</strong></p>
-                <p *ngIf="selectedPaymentMethod === 'credit-card' && cardInfo.number">
-                  Card ending in {{ cardInfo.number.slice(-4) }}
-                </p>
-                <p *ngIf="selectedPaymentMethod === 'mobile-money' && mobileMoneyInfo.phoneNumber">
-                  {{ mobileMoneyInfo.provider }}: {{ mobileMoneyInfo.phoneNumber }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Items Summary -->
-            <div class="review-section">
-              <div class="review-header">
-                <h3>Order Items ({{ cartCount }})</h3>
-                <button class="btn-edit" [routerLink]="['/cart']">Edit</button>
-              </div>
-              <div class="review-items">
-                <div *ngFor="let item of cartItems" class="review-item">
-                  <img [src]="'assets/images/' + item.image" [alt]="item.name">
-                  <div class="item-info">
-                    <h4>{{ item.name }}</h4>
-                    <p>{{ item.category }}</p>
-                    <p>Quantity: {{ item.quantity }}</p>
-                  </div>
-                  <div class="item-price">
-                    ${{ (item.price * item.quantity).toFixed(2) }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="step-actions">
-              <button class="btn-back" (click)="previousStep()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <line x1="19" y1="12" x2="5" y2="12"></line>
-                  <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Back to Payment
-              </button>
-              <button class="btn-place-order" (click)="placeOrder()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Place Order
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Order Summary Sidebar -->
-        <aside class="order-summary-sidebar">
-          <div class="summary-card">
-            <h3>Order Summary</h3>
-            
-            <div class="summary-items">
-              <div *ngFor="let item of cartItems" class="summary-item">
-                <img [src]="'images/' + item.image" [alt]="item.name">
-                <div class="item-details">
-                  <p class="item-name">{{ item.name }}</p>
-                  <p class="item-qty">Qty: {{ item.quantity }}</p>
-                </div>
-                <p class="item-total">${{ (item.price * item.quantity).toFixed(2) }}</p>
-              </div>
-            </div>
-
-            <div class="summary-divider"></div>
-
-            <div class="summary-calculations">
-              <div class="calc-row">
-                <span>Subtotal</span>
-                <span>${{ subtotal.toFixed(2) }}</span>
-              </div>
-              <div class="calc-row">
-                <span>Shipping</span>
-                <span [class.free]="shipping === 0">
-                  {{ shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2) }}
-                </span>
-              </div>
-              <div class="calc-row">
-                <span>Tax</span>
-                <span>${{ tax.toFixed(2) }}</span>
-              </div>
-              <div class="calc-row" *ngIf="discount > 0">
-                <span>Discount ({{ couponCode }})</span>
-                <span class="discount">-${{ discount.toFixed(2) }}</span>
-              </div>
-            </div>
-
-            <div class="summary-divider"></div>
-
-            <div class="summary-total">
-              <span>Total</span>
-              <span class="total-amount">${{ total.toFixed(2) }}</span>
-            </div>
-
-            <div class="security-info">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          <div class="etape" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+            <div class="etape-numero">
+              <svg *ngIf="currentStep > 1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"/>
               </svg>
-              <span>Secure checkout guaranteed</span>
+              <span *ngIf="currentStep <= 1">1</span>
+            </div>
+            <div class="etape-info">
+              <p class="etape-titre">Livraison</p>
+              <p class="etape-sous-titre">Mode et adresse</p>
             </div>
           </div>
-        </aside>
-      </div>
+
+          <div class="etape-ligne" [class.active]="currentStep >= 2"></div>
+
+          <div class="etape" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+            <div class="etape-numero">
+              <svg *ngIf="currentStep > 2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span *ngIf="currentStep <= 2">2</span>
+            </div>
+            <div class="etape-info">
+              <p class="etape-titre">Paiement</p>
+              <p class="etape-sous-titre">Mode de paiement</p>
+            </div>
+          </div>
+
+          <div class="etape-ligne" [class.active]="currentStep >= 3"></div>
+
+          <div class="etape" [class.active]="currentStep >= 3">
+            <div class="etape-numero">3</div>
+            <div class="etape-info">
+              <p class="etape-titre">Récapitulatif</p>
+              <p class="etape-sous-titre">Confirmation</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="checkout-layout">
+
+          <!-- ─── Contenu principal ─── -->
+          <div class="checkout-main">
+
+            <!-- ════════════════════════
+                 ÉTAPE 1 : LIVRAISON
+            ════════════════════════ -->
+            <div class="checkout-etape" *ngIf="currentStep === 1">
+              <div class="etape-header">
+                <h2>Mode de livraison</h2>
+                <p>Choisissez comment vous souhaitez recevoir votre commande</p>
+              </div>
+
+              <div class="modes-livraison">
+
+                <label class="mode-livraison-card" [class.selected]="modeLivraison === 'DOMICILE'">
+                  <input type="radio" name="modeLivraison" value="DOMICILE" [(ngModel)]="modeLivraison">
+                  <div class="mode-icone">🏠</div>
+                  <div class="mode-info">
+                    <h3>Livraison à domicile</h3>
+                    <p>Reçevez votre commande directement chez vous</p>
+                    <span class="mode-prix" *ngIf="modeLivraison === 'DOMICILE'">
+                      {{ fraisLivraison === 0 ? 'GRATUITE' : formatPrix(fraisLivraison) }}
+                    </span>
+                  </div>
+                </label>
+
+                <label class="mode-livraison-card" [class.selected]="modeLivraison === 'POINT_RELAIS'">
+                  <input type="radio" name="modeLivraison" value="POINT_RELAIS" [(ngModel)]="modeLivraison">
+                  <div class="mode-icone">📦</div>
+                  <div class="mode-info">
+                    <h3>Point relais</h3>
+                    <p>Retirez votre commande dans un point relais près de chez vous</p>
+                  </div>
+                </label>
+
+                <label class="mode-livraison-card" [class.selected]="modeLivraison === 'RETRAIT_MAGASIN'">
+                  <input type="radio" name="modeLivraison" value="RETRAIT_MAGASIN" [(ngModel)]="modeLivraison">
+                  <div class="mode-icone">🏪</div>
+                  <div class="mode-info">
+                    <h3>Retrait en magasin</h3>
+                    <p>Venez retirer votre commande directement en boutique</p>
+                    <span class="mode-prix gratuit">GRATUIT</span>
+                  </div>
+                </label>
+
+              </div>
+
+              <!-- Formulaire adresse (DOMICILE) -->
+              <div class="form-section" *ngIf="modeLivraison === 'DOMICILE'">
+                <h3 class="form-section-titre">Vos informations</h3>
+                <form class="form-livraison">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Nom complet *</label>
+                      <input type="text" [(ngModel)]="inviteInfo.nom" name="nom"
+                             placeholder="Votre nom et prénom" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Téléphone *</label>
+                      <input type="tel" [(ngModel)]="inviteInfo.tel" name="tel"
+                             placeholder="+221 77 000 00 00" required>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>E-mail *</label>
+                    <input type="email" [(ngModel)]="inviteInfo.email" name="email"
+                           placeholder="votre@email.com" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Adresse *</label>
+                    <input type="text" [(ngModel)]="inviteInfo.adresse" name="adresse"
+                           placeholder="Numéro, rue, bâtiment..." required>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Ville *</label>
+                      <input type="text" [(ngModel)]="inviteInfo.ville" name="ville"
+                             placeholder="Dakar" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Quartier</label>
+                      <input type="text" [(ngModel)]="inviteInfo.quartier" name="quartier"
+                             placeholder="Plateau, Médina...">
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Formulaire infos contact (POINT_RELAIS) -->
+              <div class="form-section" *ngIf="modeLivraison === 'POINT_RELAIS'">
+                <h3 class="form-section-titre">Choisissez un point relais</h3>
+                <div class="points-relais">
+                  <label *ngFor="let relais of pointsRelais"
+                         class="point-relais-card"
+                         [class.selected]="selectedPointRelaisId === relais.id">
+                    <input type="radio" name="pointRelais" [value]="relais.id"
+                           [(ngModel)]="selectedPointRelaisId">
+                    <div>
+                      <strong>{{ relais.nom }}</strong>
+                      <p>{{ relais.adresse }}, {{ relais.ville }}</p>
+                    </div>
+                  </label>
+                </div>
+                <h3 class="form-section-titre" style="margin-top: 1.5rem">Vos informations</h3>
+                <form class="form-livraison">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Nom complet *</label>
+                      <input type="text" [(ngModel)]="inviteInfo.nom" name="nom"
+                             placeholder="Votre nom et prénom" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Téléphone *</label>
+                      <input type="tel" [(ngModel)]="inviteInfo.tel" name="tel"
+                             placeholder="+221 77 000 00 00" required>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>E-mail *</label>
+                    <input type="email" [(ngModel)]="inviteInfo.email" name="email"
+                           placeholder="votre@email.com" required>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Retrait en magasin -->
+              <div class="form-section" *ngIf="modeLivraison === 'RETRAIT_MAGASIN'">
+                <div class="retrait-info">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  <div>
+                    <strong>Notre boutique</strong>
+                    <p>Rond Point Cipres / Jac Mbao, Dakar — Ouvert Lun–Sam 9h–18h</p>
+                    <p>Tel : +221 78 185 73 13</p>
+                  </div>
+                </div>
+                <h3 class="form-section-titre" style="margin-top: 1.5rem">Vos informations</h3>
+                <form class="form-livraison">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Nom complet *</label>
+                      <input type="text" [(ngModel)]="inviteInfo.nom" name="nom"
+                             placeholder="Votre nom et prénom" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Téléphone *</label>
+                      <input type="tel" [(ngModel)]="inviteInfo.tel" name="tel"
+                             placeholder="+221 77 000 00 00" required>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>E-mail *</label>
+                    <input type="email" [(ngModel)]="inviteInfo.email" name="email"
+                           placeholder="votre@email.com" required>
+                  </div>
+                </form>
+              </div>
+
+              <div class="alert-error" *ngIf="formError && currentStep === 1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {{ formError }}
+              </div>
+
+              <div class="etape-actions">
+                <button class="btn-retour" [routerLink]="['/panier']">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                  </svg>
+                  Retour au panier
+                </button>
+                <button class="btn-suivant" (click)="nextStep()">
+                  Continuer vers le paiement
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+
+            <!-- ════════════════════════
+                 ÉTAPE 2 : PAIEMENT
+            ════════════════════════ -->
+            <div class="checkout-etape" *ngIf="currentStep === 2">
+              <div class="etape-header">
+                <h2>Mode de paiement</h2>
+                <p>Choisissez votre mode de paiement</p>
+              </div>
+
+              <div class="modes-paiement">
+
+                <label class="mode-paiement-card" [class.selected]="modePaiement === 'EN_ESPECE'">
+                  <input type="radio" name="modePaiement" value="EN_ESPECE" [(ngModel)]="modePaiement">
+                  <div class="mode-icone">💵</div>
+                  <div class="mode-info">
+                    <h3>Paiement en espèces</h3>
+                    <p>Payez à la livraison ou au retrait</p>
+                  </div>
+                </label>
+
+                <label class="mode-paiement-card" [class.selected]="modePaiement === 'EN_LIGNE'">
+                  <input type="radio" name="modePaiement" value="EN_LIGNE" [(ngModel)]="modePaiement">
+                  <div class="mode-icone">📱</div>
+                  <div class="mode-info">
+                    <h3>Mobile Money</h3>
+                    <p>Orange Money, Wave, Free Money</p>
+                  </div>
+                </label>
+
+              </div>
+
+              <div class="form-section" *ngIf="modePaiement === 'EN_LIGNE'">
+                <h3 class="form-section-titre">Informations Mobile Money</h3>
+                <form class="form-livraison">
+                  <div class="form-group">
+                    <label>Opérateur *</label>
+                    <select [(ngModel)]="operateur" name="operateur" required>
+                      <option value="ORANGE_MONEY">Orange Money</option>
+                      <option value="WAVE">Wave</option>
+                      <option value="FREE_MONEY">Free Money</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Numéro de téléphone *</label>
+                    <input type="tel" [(ngModel)]="telephone" name="telephone"
+                           placeholder="+221 77 000 00 00" required>
+                  </div>
+                </form>
+              </div>
+
+              <div class="alert-error" *ngIf="formError && currentStep === 2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {{ formError }}
+              </div>
+
+              <div class="etape-actions">
+                <button class="btn-retour" (click)="previousStep()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                  </svg>
+                  Retour
+                </button>
+                <button class="btn-suivant" (click)="nextStep()">
+                  Vérifier la commande
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+
+            <!-- ════════════════════════
+                 ÉTAPE 3 : RÉCAPITULATIF
+            ════════════════════════ -->
+            <div class="checkout-etape" *ngIf="currentStep === 3">
+              <div class="etape-header">
+                <h2>Récapitulatif de la commande</h2>
+                <p>Vérifiez les informations avant de confirmer</p>
+              </div>
+
+              <!-- Livraison -->
+              <div class="recap-section">
+                <div class="recap-header">
+                  <h3>Livraison</h3>
+                  <button class="btn-modifier" (click)="goToStep(1)">Modifier</button>
+                </div>
+                <div class="recap-contenu">
+                  <p><strong>{{ getLivraisonLabel(modeLivraison) }}</strong></p>
+                  <ng-container *ngIf="modeLivraison === 'DOMICILE'">
+                    <p>{{ inviteInfo.nom }} — {{ inviteInfo.tel }}</p>
+                    <p>{{ inviteInfo.adresse }}, {{ inviteInfo.quartier }} {{ inviteInfo.ville }}</p>
+                    <p>{{ inviteInfo.email }}</p>
+                  </ng-container>
+                  <ng-container *ngIf="modeLivraison === 'POINT_RELAIS'">
+                    <p>{{ getSelectedPointRelais()?.nom }}</p>
+                    <p>{{ getSelectedPointRelais()?.adresse }}, {{ getSelectedPointRelais()?.ville }}</p>
+                    <p>{{ inviteInfo.nom }} — {{ inviteInfo.tel }}</p>
+                  </ng-container>
+                  <ng-container *ngIf="modeLivraison === 'RETRAIT_MAGASIN'">
+                    <p>Rond Point Cipres / Jac Mbao, Dakar</p>
+                  </ng-container>
+                </div>
+              </div>
+
+              <!-- Paiement -->
+              <div class="recap-section">
+                <div class="recap-header">
+                  <h3>Paiement</h3>
+                  <button class="btn-modifier" (click)="goToStep(2)">Modifier</button>
+                </div>
+                <div class="recap-contenu">
+                  <p><strong>{{ getPaiementLabel(modePaiement) }}</strong></p>
+                  <p *ngIf="modePaiement === 'EN_LIGNE'">
+                    {{ getOperateurLabel(operateur) }} — {{ telephone }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Articles -->
+              <div class="recap-section">
+                <div class="recap-header">
+                  <h3>Articles ({{ cartCount }})</h3>
+                  <button class="btn-modifier" [routerLink]="['/panier']">Modifier</button>
+                </div>
+                <div class="recap-articles">
+                  <div *ngFor="let item of cartItems" class="recap-article">
+
+                    <!-- ── PRODUIT ── -->
+                    <ng-container *ngIf="item.type === 'PRODUIT' && item.produit">
+                      <img [src]="getImageUrl(item)" [alt]="item.produit.nom"
+                           onerror="this.src='images/placeholder.jpg'">
+                      <div class="recap-article-info">
+                        <h4>{{ item.produit.nom }}</h4>
+                        <p *ngIf="item.produit.categorie">{{ item.produit.categorie.nom }}</p>
+                        <p>Quantité : {{ item.quantite }}</p>
+                      </div>
+                      <div class="recap-article-prix">
+                        {{ formatPrix((item.produit.prixPromo ?? item.produit.prix) * item.quantite) }}
+                      </div>
+                    </ng-container>
+
+                    <!-- ── GAMME ── -->
+                    <ng-container *ngIf="item.type === 'GAMME' && item.gamme">
+                      <img [src]="getImageUrl(item)" [alt]="item.gamme.nom"
+                           onerror="this.src='images/placeholder.jpg'">
+                      <div class="recap-article-info">
+                        <h4>
+                          <span class="gamme-tag">🎁 Gamme</span>
+                          {{ item.gamme.nom }}
+                        </h4>
+                        <p *ngIf="item.gamme.produits?.length">
+                          {{ item.gamme.produits!.length }} produit{{ item.gamme.produits!.length > 1 ? 's' : '' }} inclus
+                        </p>
+                        <p>Quantité : {{ item.quantite }}</p>
+                      </div>
+                      <div class="recap-article-prix">
+                        {{ formatPrix((item.gamme.prixPromo ?? item.gamme.prix_fixe) * item.quantite) }}
+                      </div>
+                    </ng-container>
+
+                  </div>
+                </div>
+              </div>
+
+              <!-- Code promo -->
+              <div class="form-group">
+                <label>Code promo (optionnel)</label>
+                <div class="code-promo-form">
+                  <input type="text" [(ngModel)]="codePromo" placeholder="Entrez votre code promo">
+                </div>
+              </div>
+
+              <div class="alert-error" *ngIf="formError && currentStep === 3">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {{ formError }}
+              </div>
+
+              <div class="etape-actions">
+                <button class="btn-retour" (click)="previousStep()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                  </svg>
+                  Retour
+                </button>
+                <button class="btn-confirmer" (click)="placeOrder()" [disabled]="isLoading">
+                  <span *ngIf="!isLoading">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Confirmer la commande
+                  </span>
+                  <span *ngIf="isLoading" class="btn-spinner-wrap">
+                    <span class="btn-spinner"></span>
+                    Traitement en cours...
+                  </span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ─── Sidebar récapitulatif ─── -->
+          <aside class="recap-sidebar">
+            <div class="recap-card">
+              <h3>Récapitulatif</h3>
+
+              <!-- ══ Liste des items (produits + gammes) ══ -->
+              <div class="recap-produits">
+                <div *ngFor="let item of cartItems" class="recap-produit">
+
+                  <!-- ── PRODUIT ── -->
+                  <ng-container *ngIf="item.type === 'PRODUIT' && item.produit">
+                    <img [src]="getImageUrl(item)" [alt]="item.produit.nom"
+                         onerror="this.src='images/placeholder.jpg'">
+                    <div class="recap-produit-details">
+                      <p class="recap-produit-nom">{{ item.produit.nom }}</p>
+                      <p class="recap-produit-qte">Qté : {{ item.quantite }}</p>
+                    </div>
+                    <p class="recap-produit-total">
+                      {{ formatPrix((item.produit.prixPromo ?? item.produit.prix) * item.quantite) }}
+                    </p>
+                  </ng-container>
+
+                  <!-- ── GAMME ── -->
+                  <ng-container *ngIf="item.type === 'GAMME' && item.gamme">
+                    <img [src]="getImageUrl(item)" [alt]="item.gamme.nom"
+                         onerror="this.src='images/placeholder.jpg'">
+                    <div class="recap-produit-details">
+                      <p class="recap-produit-nom">
+                        <span class="gamme-tag-mini">🎁</span> {{ item.gamme.nom }}
+                      </p>
+                      <p class="recap-produit-qte">Qté : {{ item.quantite }}</p>
+                    </div>
+                    <p class="recap-produit-total">
+                      {{ formatPrix((item.gamme.prixPromo ?? item.gamme.prix_fixe) * item.quantite) }}
+                    </p>
+                  </ng-container>
+
+                </div>
+              </div>
+
+              <div class="recap-separateur"></div>
+
+              <div class="recap-calculs">
+                <div class="calc-ligne">
+                  <span>Sous-total</span>
+                  <span>{{ formatPrix(subtotal) }}</span>
+                </div>
+                <div class="calc-ligne">
+                  <span>Livraison</span>
+                  <span [class.gratuit]="fraisLivraison === 0">
+                    {{ fraisLivraison === 0 ? 'GRATUITE' : formatPrix(fraisLivraison) }}
+                  </span>
+                </div>
+                <div class="calc-ligne" *ngIf="discount > 0">
+                  <span>Réduction</span>
+                  <span class="reduction">-{{ formatPrix(discount) }}</span>
+                </div>
+              </div>
+
+              <div class="recap-separateur"></div>
+
+              <div class="recap-total">
+                <span>Total</span>
+                <span class="total-montant">{{ formatPrix(total) }}</span>
+              </div>
+
+              <div class="badge-securite">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>Paiement sécurisé</span>
+              </div>
+            </div>
+          </aside>
+
+        </div>
+
+      </ng-container>
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-col">
-          <h3 class="footer-logo">
-            <span class="logo-icon">🌸</span>
-            Belletny
-          </h3>
-          <p class="footer-desc">
-            Votre destination beauté pour des produits cosmétiques naturels et de qualité supérieure.
-          </p>
-          <div class="social-links">
-            <a href="#" class="social-icon">f</a>
-            <a href="#" class="social-icon">t</a>
-            <a href="#" class="social-icon">in</a>
-            <a href="#" class="social-icon">ig</a>
-          </div>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Catégories</h4>
-          <ul class="footer-links">
-            <li><a href="#">Hair Cream</a></li>
-            <li><a href="#">Makeup Brushes</a></li>
-            <li><a href="#">Perfumes</a></li>
-            <li><a href="#">Skincare Cream</a></li>
-            <li><a href="#">Makeup Lipstick</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Informations</h4>
-          <ul class="footer-links">
-            <li><a href="#">À propos</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Livraison</a></li>
-            <li><a href="#">Retours</a></li>
-            <li><a href="#">Politique de confidentialité</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Newsletter</h4>
-          <p class="footer-desc">Inscrivez-vous pour recevoir nos offres exclusives</p>
-          <div class="newsletter-form">
-            <input type="email" placeholder="Votre email" class="newsletter-input">
-            <button class="newsletter-btn">→</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>&copy; 2024 Belletny. Tous droits réservés. Créé avec ❤️ pour la beauté.</p>
-      </div>
-    </div>
-  </footer>
 </div>

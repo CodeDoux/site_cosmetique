@@ -1,0 +1,13 @@
+<div class="admin-layout">
+  <app-admin-sidebar [isOpen]="sidebarOpen" />
+
+  <main class="main-content" [class.collapsed]="!sidebarOpen">
+    <app-admin-top-bar
+      [isOpen]="sidebarOpen"
+      (toggleSidebar)="sidebarOpen = !sidebarOpen" />
+
+    <div class="page-content">
+      <router-outlet />
+    </div>
+  </main>
+</div>

@@ -1,318 +1,434 @@
-<div class="min-h-screen bg-white">
-  <!-- Header -->
-  <header class="header-top">
-    <div class="container">
-      <div class="header-info">
-        <svg class="icon-phone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-        </svg>
-        <span>Service Client: (+221) 78-185-73-13</span>
-      </div>
-    </div>
-  </header>
+<div class="produits-page">
 
-  <!-- Navigation -->
-  <nav class="navbar">
-    <div class="container">
-      <div class="nav-content">
-        <div class="logo">
-          <span class="logo-icon">🌸</span>
-          CoBeauty
-        </div>
-        
-        <div class="search-bar">
-          <input type="text" placeholder="Search..." class="search-input">
-          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
-        </div>
-
-        <div class="nav-icons">
-          <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <div class="cart-wrapper" routerLink="/panier">
-            <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="9" cy="21" r="1"></circle>
-              <circle cx="20" cy="21" r="1"></circle>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
-            <span *ngIf="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="nav-menu">
-        <a *ngFor="let item of menuItems" 
-   [routerLink]="['/produits']" 
-   [queryParams]="{category: item}" 
-   class="menu-item">{{ item }}</a>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Breadcrumb -->
+  <!-- Fil d'ariane -->
   <div class="breadcrumb">
-    <div class="container">
-      <a href="/">Accueil</a>
-      <span class="separator">/</span>
-      <span class="current">{{selectedCategory}}</span>
-    </div>
+
   </div>
 
-  <!-- Products Page Content -->
-  <section class="products-page">
-    <div class="container">
-      <div class="page-layout">
-        
-        <!-- Sidebar Filters -->
-        <aside class="sidebar">
-          <div class="filter-section">
-            <div class="filter-header">
-              <h3>Filters</h3>
-              <button class="btn-reset" (click)="resetFilters()">Reset All</button>
-            </div>
+  <div class="container">
+    <div class="produits-layout">
 
-            <!-- Search Filter -->
-            <div class="filter-group">
-              <h4 class="filter-title">Rechercher un produit</h4>
-              <div class="search-box">
-                <input 
-                  type="text" 
-                  [(ngModel)]="searchQuery"
-                  (input)="onSearchChange()"
-                  placeholder="rechercher par nom..."
-                  class="filter-search-input">
-                <svg class="search-icon-small" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.35-4.35"></path>
+      <!-- ══════════════════════════════════════════
+           SIDEBAR FILTRES
+      ══════════════════════════════════════════ -->
+      <aside class="sidebar-filtres" [class.open]="sidebarOpen">
+
+        <div class="sidebar-header">
+          <h3>Filtres</h3>
+          <button class="btn-close-sidebar" (click)="sidebarOpen = false">×</button>
+        </div>
+
+        <!-- Recherche -->
+        <div class="filtre-bloc">
+          <h4>Rechercher</h4>
+          <div class="search-box">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input type="text" [(ngModel)]="filters.search"
+                   (ngModelChange)="onSearchChange()"
+                   placeholder="Nom du produit...">
+          </div>
+        </div>
+
+        <!-- Catégories -->
+        <div class="filtre-bloc">
+          <h4>Catégorie</h4>
+          <div class="filtre-options">
+            <label class="filtre-option" *ngFor="let cat of categories">
+              <input type="radio" name="categorie" [value]="cat.nom"
+                     [(ngModel)]="filters.categorie" (change)="onFilterChange()">
+              <span class="filtre-radio-custom"></span>
+              <span class="filtre-label">{{ cat }}</span>
+              <span class="filtre-count">2</span>
+            </label>
+            <label class="filtre-option">
+              <input type="radio" name="categorie" value=""
+                     [(ngModel)]="filters.categorie" (change)="onFilterChange()">
+              <span class="filtre-radio-custom"></span>
+              <span class="filtre-label">Toutes</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Prix -->
+        <div class="filtre-bloc">
+          <h4>Prix (Fr)</h4>
+          <div class="prix-range">
+            <input type="number" [(ngModel)]="filters.prix_min"
+                   (change)="onFilterChange()" placeholder="Min" min="0">
+            <span>—</span>
+            <input type="number" [(ngModel)]="filters.prix_max"
+                   (change)="onFilterChange()" placeholder="Max" min="0">
+          </div>
+        </div>
+
+        <!-- Statut -->
+        <div class="filtre-bloc">
+          <h4>Disponibilité</h4>
+          <div class="filtre-options">
+            <label class="filtre-option">
+              <input type="radio" name="statut" value=""
+                     [(ngModel)]="filters.statut" (change)="onFilterChange()">
+              <span class="filtre-radio-custom"></span>
+              <span class="filtre-label">Tous</span>
+            </label>
+            <label class="filtre-option">
+              <input type="radio" name="statut" value="DISPONIBLE"
+                     [(ngModel)]="filters.statut" (change)="onFilterChange()">
+              <span class="filtre-radio-custom"></span>
+              <span class="filtre-label">Disponible</span>
+            </label>
+            <label class="filtre-option">
+              <input type="radio" name="statut" value="EN_RUPTURE"
+                     [(ngModel)]="filters.statut" (change)="onFilterChange()">
+              <span class="filtre-radio-custom"></span>
+              <span class="filtre-label">En rupture</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Réinitialiser -->
+        <button class="btn-reset-filtres" (click)="resetFiltres()">
+          Réinitialiser les filtres
+        </button>
+
+      </aside>
+
+      <!-- Overlay mobile -->
+      <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="sidebarOpen = false"></div>
+
+
+      <!-- ══════════════════════════════════════════
+           CONTENU PRINCIPAL
+      ══════════════════════════════════════════ -->
+      <div class="produits-main">
+
+        <!-- Barre outils -->
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button class="btn-filtres-mobile" (click)="sidebarOpen = true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="4" y1="6" x2="20" y2="6"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+                <line x1="11" y1="18" x2="13" y2="18"/>
+              </svg>
+              Filtres
+              <span class="filtres-badge" *ngIf="nbFiltresActifs > 0">{{ nbFiltresActifs }}</span>
+            </button>
+            <p class="resultats-count">
+              <strong>{{ total }}</strong> produit{{ total > 1 ? 's' : '' }}
+            </p>
+          </div>
+          <div class="toolbar-right">
+            <select [(ngModel)]="filters.sort" (ngModelChange)="onFilterChange()" class="tri-select">
+              <option value="nom-asc">Nom A – Z</option>
+              <option value="nom-desc">Nom Z – A</option>
+              <option value="prix-asc">Prix croissant</option>
+              <option value="prix-desc">Prix décroissant</option>
+              <option value="note-desc">Mieux notés</option>
+              <option value="newest">Nouveautés</option>
+            </select>
+            <div class="vue-toggle">
+              <button [class.active]="currentView === 'grid'" (click)="setView('grid')" title="Grille">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                  <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
                 </svg>
-              </div>
-            </div>
-
-            <!-- Categories Filter -->
-            <div class="filter-group">
-              <h4 class="filter-title">Categories</h4>
-              <ul class="category-list">
-                <li 
-                  *ngFor="let cat of categories" 
-                  class="category-item"
-                  [class.active]="selectedCategory === cat.name || (selectedCategory === 'all' && cat.name === 'All Products')"
-                  (click)="selectCategory(cat.name)">
-                  <span class="category-icon">{{ cat.icon }}</span>
-                  <span class="category-text">{{ cat.name }}</span>
-                  <span class="category-count">({{ getCategoryCount(cat.name) }})</span>
-                </li>
-              </ul>
-            </div>
-
-            <!-- Price Range Filter -->
-            <div class="filter-group">
-              <h4 class="filter-title">Price Range</h4>
-              <div class="price-range">
-                <div class="price-inputs">
-                  <div class="price-input-group">
-                    <label>Min</label>
-                    <input 
-                      type="number" 
-                      [(ngModel)]="currentPriceRange.min"
-                      (change)="onPriceRangeChange()"
-                      [min]="priceRange.min"
-                      [max]="priceRange.max"
-                      class="price-input">
-                  </div>
-                  <span class="price-separator">-</span>
-                  <div class="price-input-group">
-                    <label>Max</label>
-                    <input 
-                      type="number" 
-                      [(ngModel)]="currentPriceRange.max"
-                      (change)="onPriceRangeChange()"
-                      [min]="priceRange.min"
-                      [max]="priceRange.max"
-                      class="price-input">
-                  </div>
-                </div>
-                <div class="price-range-slider">
-                  <input 
-                    type="range" 
-                    [(ngModel)]="currentPriceRange.min"
-                    (input)="onPriceRangeChange()"
-                    [min]="priceRange.min"
-                    [max]="priceRange.max"
-                    class="range-slider">
-                  <input 
-                    type="range" 
-                    [(ngModel)]="currentPriceRange.max"
-                    (input)="onPriceRangeChange()"
-                    [min]="priceRange.min"
-                    [max]="priceRange.max"
-                    class="range-slider">
-                </div>
-                <div class="price-display">
-                  ${{ currentPriceRange.min }} - ${{ currentPriceRange.max }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Popular Tags -->
-            <div class="filter-group">
-              <h4 class="filter-title">Popular Tags</h4>
-              <div class="tags-container">
-                <span class="tag">New Arrivals</span>
-                <span class="tag">Best Sellers</span>
-                <span class="tag">Organic</span>
-                <span class="tag">Vegan</span>
-                <span class="tag">Cruelty Free</span>
-                <span class="tag">Sale</span>
-              </div>
+              </button>
+              <button [class.active]="currentView === 'list'" (click)="setView('list')" title="Liste">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                  <line x1="8" y1="18" x2="21" y2="18"/>
+                  <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+                  <line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+              </button>
             </div>
           </div>
-        </aside>
+        </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-          <!-- Toolbar -->
-          <div class="products-toolbar">
-            <div class="toolbar-left">
-              <p class="results-count">
-                Showing <strong>{{ filteredProducts.length }}</strong> of <strong>{{ allProducts.length }}</strong> products
-              </p>
-            </div>
-            <div class="toolbar-right">
-              <label class="sort-label">Sort by:</label>
-              <select 
-                [(ngModel)]="selectedSort"
-                (change)="onSortChange()"
-                class="sort-select">
-                <option value="default">Default</option>
-                <option value="name">Name (A-Z)</option>
-                <option value="price-low">Price (Low to High)</option>
-                <option value="price-high">Price (High to Low)</option>
-                <option value="bestseller">Best Sellers</option>
-                <option value="rating">Highest Rated</option>
-              </select>
-            </div>
-          </div>
+        <!-- Chargement -->
+        <div class="loading-container" *ngIf="isLoading">
+          <div class="spinner"></div>
+          <p>Chargement des produits...</p>
+        </div>
 
-          <!-- Products Grid -->
-          <div class="products-grid" *ngIf="filteredProducts.length > 0">
-            <div *ngFor="let product of filteredProducts" class="product-card">
-              <div class="product-image-wrapper">
-                <span *ngIf="product.badge" class="product-badge">{{ product.badge }}</span>
-                <img 
-                  [src]="'images/' + product.image" 
-                  [alt]="product.name"
-                  class="product-image">
-                <div class="product-actions">
-                  <button class="action-btn" (click)="addToWishlist(product)" title="Add to Wishlist">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" (click)="quickView(product)" title="Quick View">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </button>
-                </div>
+        <!-- Erreur -->
+        <div class="error-state" *ngIf="hasError && !isLoading">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <h3>Oups, une erreur est survenue</h3>
+          <p>Impossible de charger les produits.</p>
+          <button (click)="loadProduits()">Réessayer</button>
+        </div>
+
+        <!-- ─── VUE GRILLE ─── -->
+        <div class="produits-grid" *ngIf="!isLoading && !hasError && currentView === 'grid'">
+
+          <article *ngFor="let produit of produits" class="produit-card">
+
+            <!-- Images -->
+            <div class="produit-image-wrapper"
+                 (mouseenter)="setHoverImage(produit, 1)"
+                 (mouseleave)="setHoverImage(produit, 0)">
+
+              <!-- Statut rupture -->
+              <div class="rupture-overlay" *ngIf="produit.statut === 'EN_RUPTURE'">
+                <span>Rupture de stock</span>
               </div>
-              <div class="product-info">
-                <div class="product-rating">
-                  <svg 
-                    *ngFor="let star of getStars(product.rating); let i = index" 
-                    [class.filled]="isStarFilled(i, product.rating)"
-                    class="star-icon" 
-                    width="14" height="14" 
-                    viewBox="0 0 24 24" 
-                    fill="currentColor" 
-                    stroke="currentColor">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+
+              <!-- Image principale -->
+              <img
+                [src]="getImagePrimaire(produit)"
+                [alt]="produit.nom"
+                class="produit-img"
+                loading="lazy">
+
+              <!-- Indicateurs d'images -->
+              <div class="image-dots" *ngIf="(produit.images?.length ?? 0) > 1">
+                <span *ngFor="let img of produit.images; let i = index"
+                      class="dot" [class.active]="getActiveIndex(produit) === i"
+                      (click)="$event.stopPropagation(); setActiveImage(produit, i)"></span>
+              </div>
+
+              <!-- Badge promo -->
+              <span class="promo-badge" *ngIf="produit.prixPromo">
+                -{{ getReduction(produit) }}%
+              </span>
+
+              <!-- Actions hover -->
+              <div class="produit-actions">
+                <button class="action-btn" (click)="ajouterAuxFavoris(produit)" title="Favoris">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                   </svg>
-                </div>
-                <h3 class="product-name">{{ product.name }}</h3>
-                <p class="product-category">{{ product.category }}</p>
-                <div class="product-price">
-                  <span class="price-current">${{ product.price.toFixed(2) }}</span>
-                  <span *ngIf="product.oldPrice" class="price-old">${{ product.oldPrice.toFixed(2) }}</span>
-                </div>
-                <button class="btn-add-cart" (click)="addToCart(product)">
-                  Ajouter au panier
+                </button>
+                <button class="action-btn" (click)="ouvrirApercu(produit)" title="Aperçu rapide">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
                 </button>
               </div>
             </div>
-          </div>
 
-          <!-- No Results -->
-          <div class="no-results" *ngIf="filteredProducts.length === 0">
-            <div class="no-results-icon">🔍</div>
-            <h3>No products found</h3>
-            <p>Try adjusting your filters or search terms</p>
-            <button class="btn-primary" (click)="resetFilters()">Clear Filters</button>
-          </div>
-        </main>
+            <!-- Infos -->
+            <div class="produit-infos">
+              <p class="produit-categorie" *ngIf="produit.categorie">{{ produit.categorie.nom }}</p>
+              <h3 class="produit-nom" [routerLink]="['/produits', produit.id]">{{ produit.nom }}</h3>
+
+              <!-- Étoiles -->
+              <div class="produit-note">
+                <svg *ngFor="let s of [0,1,2,3,4]"
+                     width="13" height="13" viewBox="0 0 24 24"
+                     [class.star-on]="s < produit.note"
+                     fill="currentColor" stroke="currentColor">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                <span class="note-val" *ngIf="produit.note">{{ produit.note.toFixed(1) }}</span>
+              </div>
+
+              <!-- Prix -->
+              <div class="produit-prix">
+                <span class="prix-actuel" [class.prix-solde]="produit.prixPromo">
+                  {{ formatPrix(produit.prixPromo ?? produit.prix) }}
+                </span>
+                <span class="prix-barre" *ngIf="produit.prixPromo">
+                  {{ formatPrix(produit.prix) }}
+                </span>
+              </div>
+
+              <!-- Bouton panier -->
+              <button
+                class="btn-panier"
+                (click)="ajouterAuPanier(produit)"
+                [disabled]="produit.statut === 'EN_RUPTURE'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                {{ produit.statut === 'EN_RUPTURE' ? 'Indisponible' : 'Ajouter au panier' }}
+              </button>
+            </div>
+
+          </article>
+
+        </div>
+
+
+        <!-- ─── VUE LISTE ─── -->
+        <div class="produits-liste" *ngIf="!isLoading && !hasError && currentView === 'list'">
+
+          <article *ngFor="let produit of produits" class="produit-ligne">
+
+            <div class="produit-ligne-img">
+              <img [src]="getImagePrimaire(produit)" [alt]="produit.nom" loading="lazy">
+              <span class="promo-badge" *ngIf="produit.prixPromo">-{{ getReduction(produit) }}%</span>
+            </div>
+
+            <div class="produit-ligne-info">
+              <p class="produit-categorie" *ngIf="produit.categorie">{{ produit.categorie.nom }}</p>
+              <h3 class="produit-nom" [routerLink]="['/produits', produit.id]">{{ produit.nom }}</h3>
+              <p class="produit-desc" *ngIf="produit.description">
+                {{ produit.description | slice:0:120 }}{{ (produit.description.length) > 120 ? '…' : '' }}
+              </p>
+              <div class="produit-note">
+                <svg *ngFor="let s of [0,1,2,3,4]" width="12" height="12" viewBox="0 0 24 24"
+                     [class.star-on]="s < produit.note" fill="currentColor" stroke="currentColor">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              </div>
+              <!-- Miniatures des autres images -->
+              <div class="thumbnails" *ngIf="(produit.images?.length ?? 0) > 1">
+                <img *ngFor="let img of produit.images; let i = index"
+                     [src]="getImageUrl(img.chemin)"
+                     [alt]="img.altText"
+                     class="thumb"
+                     [class.active]="getActiveIndex(produit) === i"
+                     (click)="setActiveImage(produit, i)">
+              </div>
+            </div>
+
+            <div class="produit-ligne-droite">
+              <div class="produit-prix">
+                <span class="prix-actuel" [class.prix-solde]="produit.prixPromo">
+                  {{ formatPrix(produit.prixPromo ?? produit.prix) }}
+                </span>
+                <span class="prix-barre" *ngIf="produit.prixPromo">{{ formatPrix(produit.prix) }}</span>
+              </div>
+              <span class="statut-tag" [class.statut-dispo]="produit.statut === 'DISPONIBLE'"
+                    [class.statut-rupture]="produit.statut === 'EN_RUPTURE'">
+                {{ produit.statut === 'DISPONIBLE' ? 'En stock' : 'Rupture' }}
+              </span>
+              <button class="btn-panier" (click)="ajouterAuPanier(produit)"
+                      [disabled]="produit.statut === 'EN_RUPTURE'">
+                {{ produit.statut === 'EN_RUPTURE' ? 'Indisponible' : 'Ajouter au panier' }}
+              </button>
+            </div>
+
+          </article>
+
+        </div>
+
+        <!-- État vide -->
+        <div class="empty-state" *ngIf="!isLoading && !hasError && produits.length === 0">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <h3>Aucun produit trouvé</h3>
+          <p>Essayez d'ajuster vos filtres</p>
+          <button (click)="resetFiltres()">Réinitialiser</button>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="!isLoading && lastPage > 1">
+          <button class="pag-btn" (click)="goToPage(currentPage - 1)"
+                  [disabled]="currentPage === 1">←</button>
+          <ng-container *ngFor="let p of pagesVisibles">
+            <span *ngIf="p === '...'" class="pag-ellipsis">…</span>
+            <button *ngIf="p !== '...'" class="pag-btn"
+                    [class.active]="currentPage === p"
+                    (click)="goToPage(+p)">{{ p }}</button>
+          </ng-container>
+          <button class="pag-btn" (click)="goToPage(currentPage + 1)"
+                  [disabled]="currentPage === lastPage">→</button>
+        </div>
+
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-col">
-          <h3 class="footer-logo">
-            <span class="logo-icon">🌸</span>
-            CoBeauty
-          </h3>
-          <p class="footer-desc">
-            Votre destination beauté pour des produits cosmétiques naturels et de qualité supérieure.
-          </p>
-          <div class="social-links">
-            <a href="#" class="social-icon">f</a>
-            <a href="#" class="social-icon">t</a>
-            <a href="#" class="social-icon">in</a>
-            <a href="#" class="social-icon">ig</a>
+
+  <!-- ══════════════════════════════════════════
+       MODAL APERÇU RAPIDE
+  ══════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="apercuProduit" (click)="apercuProduit = null">
+    <div class="apercu-modal" (click)="$event.stopPropagation()">
+
+      <button class="apercu-close" (click)="apercuProduit = null">×</button>
+
+      <div class="apercu-body">
+
+        <!-- Galerie -->
+        <div class="apercu-galerie">
+          <div class="apercu-main-img">
+            <img [src]="getImagePrimaire(apercuProduit)"
+                 [alt]="apercuProduit.nom">
+            <span class="promo-badge" *ngIf="apercuProduit.prixPromo">
+              -{{ getReduction(apercuProduit) }}%
+            </span>
+          </div>
+          <div class="apercu-thumbs" *ngIf="(apercuProduit.images?.length ?? 0) > 1">
+            <img *ngFor="let img of apercuProduit.images; let i = index"
+                 [src]="getImageUrl(img.chemin)"
+                 [alt]="img.altText"
+                 class="apercu-thumb"
+                 [class.active]="getActiveIndex(apercuProduit) === i"
+                 (click)="setActiveImage(apercuProduit, i)">
           </div>
         </div>
 
-        <div class="footer-col">
-          <h4 class="footer-title">Catégories</h4>
-          <ul class="footer-links">
-            <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Capillaires'}">Capillaires</a></li>
-            <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Beauté'}" >Beauté</a></li>
-            <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Parfums'}" >Parfums</a></li>
-            <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Corps et visage'}" >Corps et visage</a></li>
-            <li><a [routerLink]="['/produits']" [queryParams]="{category: 'Pédicure manicure'}" >Pédicure manicure</a></li>
-          </ul>
-        </div>
+        <!-- Détails -->
+        <div class="apercu-details">
+          <p class="produit-categorie" *ngIf="apercuProduit.categorie">{{ apercuProduit.categorie.nom }}</p>
+          <h2 class="apercu-nom">{{ apercuProduit.nom }}</h2>
 
-        <div class="footer-col">
-          <h4 class="footer-title">Informations</h4>
-          <ul class="footer-links">
-            <li><a href="#">À propos</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Livraison</a></li>
-            <li><a href="#">Retours</a></li>
-            <li><a href="#">Politique de confidentialité</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Newsletter</h4>
-          <p class="footer-desc">Inscrivez-vous pour recevoir nos offres exclusives</p>
-          <div class="newsletter-form">
-            <input type="email" placeholder="Votre email" class="newsletter-input">
-            <button class="newsletter-btn">→</button>
+          <div class="produit-note apercu-note">
+            <svg *ngFor="let s of [0,1,2,3,4]" width="15" height="15" viewBox="0 0 24 24"
+                 [class.star-on]="s < apercuProduit.note" fill="currentColor" stroke="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span class="note-val">{{ apercuProduit.note.toFixed(1) }}</span>
           </div>
-        </div>
-      </div>
 
-      <div class="footer-bottom">
-        <p>&copy; 2024 Belletny. Tous droits réservés. Créé avec ❤️ pour la beauté.</p>
+          <div class="apercu-prix">
+            <span class="prix-actuel" [class.prix-solde]="apercuProduit.prixPromo">
+              {{ formatPrix(apercuProduit.prixPromo ?? apercuProduit.prix) }}
+            </span>
+            <span class="prix-barre" *ngIf="apercuProduit.prixPromo">
+              {{ formatPrix(apercuProduit.prix) }}
+            </span>
+          </div>
+
+          <p class="apercu-desc" *ngIf="apercuProduit.description">{{ apercuProduit.description }}</p>
+
+          <div class="apercu-stock">
+            <span class="statut-tag" [class.statut-dispo]="apercuProduit.statut === 'DISPONIBLE'"
+                  [class.statut-rupture]="apercuProduit.statut === 'EN_RUPTURE'">
+              {{ apercuProduit.statut === 'DISPONIBLE' ? '✓ En stock' : '✗ Rupture de stock' }}
+            </span>
+          </div>
+
+          <div class="apercu-qte" *ngIf="apercuProduit.statut === 'DISPONIBLE'">
+            <label>Quantité</label>
+            <div class="qte-control">
+              <button (click)="apercuQte = apercuQte > 1 ? apercuQte - 1 : 1">−</button>
+              <input type="number" [(ngModel)]="apercuQte" min="1" [max]="apercuProduit.stock">
+              <button (click)="apercuQte = apercuQte < apercuProduit.stock ? apercuQte + 1 : apercuQte">+</button>
+            </div>
+          </div>
+
+          <div class="apercu-actions">
+            <button class="btn-panier btn-panier-lg" (click)="ajouterAuPanierQte(apercuProduit)"
+                    [disabled]="apercuProduit.statut === 'EN_RUPTURE'">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              Ajouter au panier
+            </button>
+            <a class="btn-voir-detail" [routerLink]="['/produits', apercuProduit.id]" (click)="apercuProduit = null">
+              Voir le détail →
+            </a>
+          </div>
+
+        </div>
       </div>
     </div>
-  </footer>
+  </div>
+
 </div>

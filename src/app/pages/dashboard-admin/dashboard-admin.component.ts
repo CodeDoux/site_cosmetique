@@ -1,50 +1,18 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-
-interface StatCard {
-  title: string;
-  value: string | number;
-  change: number;
-  icon: string;
-  color: string;
-}
-
-interface Order {
-  id: string;
-  customer: string;
-  date: string;
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  items: number;
-}
-
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  stock: number;
-  sales: number;
-  image: string;
-  status: 'active' | 'inactive';
-}
-
-interface Customer {
-  id: number;
-  name: string;
-  email: string;
-  orders: number;
-  spent: number;
-  joinDate: string;
-  avatar: string;
-}
-
-interface ChartData {
-  label: string;
-  value: number;
-}
+import { HttpClient } from '@angular/common/http';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { Commande } from '../../models/commande';
+import { Produit } from '../../models/produit';
+import { User } from '../../models/user';
+import { Paiement } from '../../models/paiement';
+import { ProduitService } from '../../services/produit.service';
+import { CommandesService } from '../../services/commande.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -54,289 +22,252 @@ interface ChartData {
   templateUrl: './dashboard-admin.component.html',
   styleUrls: ['./dashboard-admin.component.css']
 })
-export class DashboardAdminComponent implements OnInit{
+export class DashboardAdminComponent implements OnInit, OnDestroy {
+
   Math = Math;
-  // Sidebar state
-  sidebarOpen: boolean = true;
-  activeMenu: string = 'dashboard';
+  private apiUrl = environment.apiUrl;
+ storageUrl= environment.storageUrl
+  private destroy$ = new Subject<void>();
 
-  // Statistics Cards
-  statsCards: StatCard[] = [
-    {
-      title: 'Total Revenue',
-      value: '$45,231',
-      change: 12.5,
-      icon: '💰',
-      color: 'primary'
-    },
-    {
-      title: 'Total Orders',
-      value: '1,234',
-      change: 8.3,
-      icon: '📦',
-      color: 'success'
-    },
-    {
-      title: 'Total Customers',
-      value: '892',
-      change: 15.2,
-      icon: '👥',
-      color: 'info'
-    },
-    {
-      title: 'Products Sold',
-      value: '3,456',
-      change: -2.4,
-      icon: '🛍️',
-      color: 'warning'
-    }
-  ];
+  // ─── États ───
+  isLoading = true;
 
-  // Recent Orders
-  recentOrders: Order[] = [
-    {
-      id: '#ORD-001234',
-      customer: 'Aminata Diop',
-      date: '2024-12-28',
-      total: 325.00,
-      status: 'delivered',
-      items: 3
-    },
-    {
-      id: '#ORD-001233',
-      customer: 'Moussa Kane',
-      date: '2024-12-28',
-      total: 189.50,
-      status: 'shipped',
-      items: 2
-    },
-    {
-      id: '#ORD-001232',
-      customer: 'Fatou Sall',
-      date: '2024-12-27',
-      total: 456.75,
-      status: 'processing',
-      items: 5
-    },
-    {
-      id: '#ORD-001231',
-      customer: 'Ibrahima Ndiaye',
-      date: '2024-12-27',
-      total: 234.00,
-      status: 'pending',
-      items: 4
-    },
-    {
-      id: '#ORD-001230',
-      customer: 'Aissatou Ba',
-      date: '2024-12-26',
-      total: 567.25,
-      status: 'delivered',
-      items: 6
-    }
-  ];
+  // ─── Stats ───
+  totalRevenu     = 0;
+  totalCommandes  = 0;
+  totalClients    = 0;
+  totalProduits   = 0;
+  commandesEnAttente = 0;
 
-  // Top Products
-  topProducts: Product[] = [
-    {
-      id: 1,
-      name: 'Beauty Ultimate Eye Shadow',
-      category: 'Makeup Brushes',
-      price: 113.00,
-      stock: 45,
-      sales: 250,
-      image: 'produit1.jpg',
-      status: 'active'
-    },
-    {
-      id: 2,
-      name: 'Nourishing Gold Kesar',
-      category: 'Skincare Cream',
-      price: 126.00,
-      stock: 32,
-      sales: 320,
-      image: 'produit2.jpg',
-      status: 'active'
-    },
-    {
-      id: 3,
-      name: 'Yunucha Eye Liner',
-      category: 'Makeup Lipstick',
-      price: 86.00,
-      stock: 78,
-      sales: 410,
-      image: 'produit5.jpg',
-      status: 'active'
-    },
-    {
-      id: 4,
-      name: 'Matte Poreless Liquid',
-      category: 'Face Cream',
-      price: 122.00,
-      stock: 12,
-      sales: 380,
-      image: 'produit6.jpg',
-      status: 'active'
-    }
-  ];
+  // ─── Données ───
+  recentCommandes: Commande[] = [];
+  topProduits:     Produit[]  = [];
+  recentClients:   User[]     = [];
 
-  // Recent Customers
-  recentCustomers: Customer[] = [
-    {
-      id: 1,
-      name: 'Aminata Diop',
-      email: 'aminata.diop@example.com',
-      orders: 12,
-      spent: 1456.80,
-      joinDate: '2024-01-15',
-      avatar: '👩🏾'
-    },
-    {
-      id: 2,
-      name: 'Moussa Kane',
-      email: 'moussa.kane@example.com',
-      orders: 8,
-      spent: 892.50,
-      joinDate: '2024-02-20',
-      avatar: '👨🏾'
-    },
-    {
-      id: 3,
-      name: 'Fatou Sall',
-      email: 'fatou.sall@example.com',
-      orders: 15,
-      spent: 2134.00,
-      joinDate: '2023-11-10',
-      avatar: '👩🏿'
-    },
-    {
-      id: 4,
-      name: 'Ibrahima Ndiaye',
-      email: 'ibrahima.n@example.com',
-      orders: 6,
-      spent: 678.90,
-      joinDate: '2024-03-05',
-      avatar: '👨🏿'
-    }
-  ];
+  // ─── Graphique ventes (7 derniers jours) ───
+  ventesParJour: { label: string; value: number }[] = [];
 
-  // Sales Chart Data (Last 7 days)
-  salesChartData: ChartData[] = [
-    { label: 'Mon', value: 2400 },
-    { label: 'Tue', value: 3200 },
-    { label: 'Wed', value: 2800 },
-    { label: 'Thu', value: 4100 },
-    { label: 'Fri', value: 3800 },
-    { label: 'Sat', value: 5200 },
-    { label: 'Sun', value: 4600 }
-  ];
+  // ─── Répartition statuts commandes ───
+  statutsCommandes: { label: string; value: number; color: string }[] = [];
 
-  // Category Distribution
-  categoryData: ChartData[] = [
-    { label: 'Skincare', value: 35 },
-    { label: 'Makeup', value: 28 },
-    { label: 'Hair Care', value: 18 },
-    { label: 'Perfumes', value: 12 },
-    { label: 'Others', value: 7 }
-  ];
+  // ─── Filtres ───
+  selectedPeriod = 'week';
 
-  // Filters
-  selectedPeriod: string = 'week';
-  searchQuery: string = '';
+  constructor(
+    private http:             HttpClient,
+    private commandesService: CommandesService,
+    private produitService:   ProduitService
+  ) {}
 
   ngOnInit(): void {
-    // Initialize dashboard data
+    this.loadDashboard();
   }
 
-  // Sidebar Methods
-  toggleSidebar(): void {
-    this.sidebarOpen = !this.sidebarOpen;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  setActiveMenu(menu: string): void {
-    this.activeMenu = menu;
+
+  // ══════════════════════════════════════════
+  // CHARGEMENT GLOBAL
+  // ══════════════════════════════════════════
+
+  loadDashboard(): void {
+    this.isLoading = true;
+    forkJoin({
+      commandes: this.commandesService.getAll().pipe(catchError(() => of([]))),
+      produits:  this.produitService.getProduits({ per_page: 100 }).pipe(catchError(() => of({ data: [] }))),
+      clients:   this.http.get<any>(`${this.apiUrl}/users?role=CLIENT&per_page=100`).pipe(catchError(() => of({ data: [] }))),
+      paiements: this.http.get<any>(`${this.apiUrl}/paiements?per_page=100`).pipe(catchError(() => of({ data: [] }))),
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: ({ commandes, produits, clients, paiements }) => {
+
+        // ─── Commandes ───
+        const listeCommandes: Commande[] = Array.isArray(commandes)
+          ? commandes
+          : (commandes as any)?.data ?? [];
+
+        this.totalCommandes     = listeCommandes.length;
+        this.commandesEnAttente = listeCommandes.filter(c => c.statut === 'EN_ATTENTE').length;
+        this.recentCommandes    = listeCommandes.slice(0, 5);
+
+        // ─── Produits ───
+        const listeProduits: Produit[] = Array.isArray(produits)
+          ? produits
+          : (produits as any)?.data ?? [];
+
+        this.totalProduits = listeProduits.length;
+        this.topProduits   = listeProduits.slice(0, 4);
+
+        // ─── Clients ───
+        const listeClients: User[] = Array.isArray(clients)
+          ? clients
+          : (clients as any)?.data ?? [];
+
+        this.totalClients  = listeClients.length;
+        this.recentClients = listeClients.slice(0, 4);
+
+        // ─── Paiements (revenu total) ───
+        const listePaiements: Paiement[] = Array.isArray(paiements)
+          ? paiements
+          : (paiements as any)?.data ?? [];
+
+        this.totalRevenu = listePaiements
+          .filter(p => p.statutPaiement === 'PAYEE')
+          .reduce((sum, p) => sum + p.montant, 0);
+
+        // ─── Calculs graphiques ───
+        this.calculerVentesParJour(listeCommandes);
+        this.calculerStatutsCommandes(listeCommandes);
+
+        this.isLoading = false;
+      },
+      error: () => { this.isLoading = false; }
+    });
   }
 
-  // Order Methods
-  getOrderStatusClass(status: string): string {
-    const statusClasses: { [key: string]: string } = {
-      'pending': 'status-pending',
-      'processing': 'status-processing',
-      'shipped': 'status-shipped',
-      'delivered': 'status-delivered',
-      'cancelled': 'status-cancelled'
+
+  // ══════════════════════════════════════════
+  // CALCULS GRAPHIQUES
+  // ══════════════════════════════════════════
+
+  private calculerVentesParJour(commandes: Commande[]): void {
+    const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    const maintenant = new Date();
+
+    this.ventesParJour = jours.map((label, i) => {
+      const date = new Date(maintenant);
+      date.setDate(maintenant.getDate() - (6 - i));
+      const dateStr = date.toISOString().slice(0, 10);
+
+      const total = commandes
+        .filter(c => c.dateCommande?.slice(0, 10) === dateStr)
+        .reduce((sum, c) => sum + (c.montantTotal ?? 0), 0);
+
+      return { label, value: total };
+    });
+  }
+
+  private calculerStatutsCommandes(commandes: Commande[]): void {
+    const statuts = [
+      { key: 'EN_ATTENTE',     label: 'En attente',     color: '#f59e0b' },
+      { key: 'EN_PREPARATION', label: 'En préparation', color: '#3b82f6' },
+      { key: 'EN_LIVRAISON',   label: 'En livraison',   color: '#caca8e' },
+      { key: 'LIVREE',         label: 'Livrée',         color: '#354d35' },
+      { key: 'ANNULEE',        label: 'Annulée',        color: '#ef4444' },
+    ];
+
+    this.statutsCommandes = statuts.map(s => ({
+      label: s.label,
+      color: s.color,
+      value: commandes.filter(c => c.statut === s.key).length,
+    })).filter(s => s.value > 0);
+  }
+
+
+  // ══════════════════════════════════════════
+  // HELPERS GRAPHIQUES
+  // ══════════════════════════════════════════
+
+  getMaxVentes(): number {
+    return Math.max(...this.ventesParJour.map(d => d.value), 1);
+  }
+
+  getBarHeight(value: number): number {
+    return (value / this.getMaxVentes()) * 100;
+  }
+
+  getStatutPourcentage(value: number): number {
+    const total = this.statutsCommandes.reduce((s, i) => s + i.value, 0);
+    return total > 0 ? Math.round((value / total) * 100) : 0;
+  }
+
+
+  // ══════════════════════════════════════════
+  // HELPERS PRODUIT / CLIENT
+  // ══════════════════════════════════════════
+
+  getProduitImage(produit: Produit): string {
+    if (!produit.images || produit.images.length === 0) return 'images/placeholder.jpg';
+    const primary = produit.images.find(i => i.isPrimary) ?? produit.images[0];
+    return `${this.storageUrl}/${primary.chemin}`;
+  }
+
+  getInitiales(nom: string): string {
+    return nom.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  getAvatarColor(id: number): string {
+    const colors = ['avatar-green', 'avatar-pink', 'avatar-blue', 'avatar-amber', 'avatar-purple'];
+    return colors[id % colors.length];
+  }
+
+
+  // ══════════════════════════════════════════
+  // HELPERS COMMANDES
+  // ══════════════════════════════════════════
+
+  getStatutClass(statut: string): string {
+    const map: Record<string, string> = {
+      EN_ATTENTE:     'status-pending',
+      EN_PREPARATION: 'status-processing',
+      EN_LIVRAISON:   'status-shipped',
+      LIVREE:         'status-delivered',
+      ANNULEE:        'status-cancelled',
     };
-    return statusClasses[status] || '';
+    return map[statut] ?? '';
   }
 
-  getOrderStatusLabel(status: string): string {
-    const labels: { [key: string]: string } = {
-      'pending': 'Pending',
-      'processing': 'Processing',
-      'shipped': 'Shipped',
-      'delivered': 'Delivered',
-      'cancelled': 'Cancelled'
+  getStatutLabel(statut: string): string {
+    const map: Record<string, string> = {
+      EN_ATTENTE:     'En attente',
+      EN_PREPARATION: 'En préparation',
+      EN_LIVRAISON:   'En livraison',
+      LIVREE:         'Livrée',
+      ANNULEE:        'Annulée',
     };
-    return labels[status] || status;
+    return map[statut] ?? statut;
   }
 
-  viewOrder(order: Order): void {
-    console.log('View order:', order);
+  getNomClient(commande: Commande): string {
+    return commande.client?.nomComplet ?? commande.user?.nomComplet ?? '—';
   }
 
-  // Product Methods
-  editProduct(product: Product): void {
-    console.log('Edit product:', product);
+
+  // ══════════════════════════════════════════
+  // FORMATTERS
+  // ══════════════════════════════════════════
+
+  formatPrix(montant: number): string {
+    if (!montant) return '0 Fr';
+    return montant.toLocaleString('fr-FR') + ' Fr';
   }
 
-  deleteProduct(product: Product): void {
-    if (confirm(`Are you sure you want to delete ${product.name}?`)) {
-      console.log('Delete product:', product);
-    }
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('fr-FR', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
   }
 
-  toggleProductStatus(product: Product): void {
-    product.status = product.status === 'active' ? 'inactive' : 'active';
-  }
 
-  // Customer Methods
-  viewCustomer(customer: Customer): void {
-    console.log('View customer:', customer);
-  }
+  // ══════════════════════════════════════════
+  // FILTRE PÉRIODE
+  // ══════════════════════════════════════════
 
-  // Chart Methods
-  getChartBarHeight(value: number, maxValue: number): number {
-    return (value / maxValue) * 100;
-  }
-
-  getMaxSalesValue(): number {
-    return Math.max(...this.salesChartData.map(d => d.value));
-  }
-
-  getCategoryPercentage(value: number): number {
-    const total = this.categoryData.reduce((sum, item) => sum + item.value, 0);
-    return (value / total) * 100;
-  }
-
-  // Filter Methods
   filterByPeriod(period: string): void {
     this.selectedPeriod = period;
-    console.log('Filter by period:', period);
+    this.loadDashboard();
   }
 
-  // Export Methods
-  exportData(type: string): void {
-    console.log('Export data:', type);
-    alert(`Exporting ${type} data...`);
-  }
+  get totalVentes(): number {
+  return this.ventesParJour.reduce((s, d) => s + d.value, 0);
+}
 
-  // Utility Methods
-  formatCurrency(amount: number): string {
-    return `$${amount.toFixed(2)}`;
-  }
-
-  formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('fr-FR');
-  }
-
+get aucuneVente(): boolean {
+  return this.ventesParJour.every(d => d.value === 0);
+}
 }

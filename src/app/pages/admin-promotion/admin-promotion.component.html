@@ -1,0 +1,530 @@
+<div class="promotions-page">
+
+  <!-- ─── En-tête ─── -->
+  <div class="page-header">
+    <div>
+      <h1>Promotions</h1>
+      <p>{{ total }} promotion{{ total > 1 ? 's' : '' }} au total</p>
+    </div>
+    <button class="btn-add" (click)="openModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nouvelle promotion
+    </button>
+  </div>
+
+  <!-- ─── Chargement ─── -->
+  <div class="table-loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- ─── Erreur ─── -->
+  <div class="alert-error" *ngIf="hasError && !isLoading">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ errorMsg }}</span>
+    <button (click)="loadPromotions()">Réessayer</button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !hasError">
+
+    <!-- ─── Filtres ─── -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" [(ngModel)]="searchQuery"
+               (ngModelChange)="onSearchChange()"
+               placeholder="Nom, code promo...">
+      </div>
+
+      <select [(ngModel)]="filterType" (ngModelChange)="onFilterChange()">
+        <option value="">Tous les types</option>
+        <option value="POURCENTAGE">Pourcentage</option>
+        <option value="MONTANT_FIXE">Montant fixe</option>
+      </select>
+
+      <select [(ngModel)]="filterActif" (ngModelChange)="onFilterChange()">
+        <option value="">Tous les statuts</option>
+        <option value="1">Actives</option>
+        <option value="0">Inactives</option>
+      </select>
+    </div>
+
+    <!-- ─── Tableau ─── -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Liste des promotions</h3>
+        <span>{{ total }} promotion{{ total > 1 ? 's' : '' }}</span>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Cible</th>
+              <th>Code / Produits</th>
+              <th>Type</th>
+              <th>Valeur</th>
+              <th>Période</th>
+              <th>Statut</th>
+              <th>Actif</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let promo of promotions">
+
+              <!-- Nom -->
+              <td>
+                <div class="promo-nom-cell">
+                  <strong>{{ promo.nom }}</strong>
+                  <span *ngIf="promo.description" class="promo-desc">{{ promo.description }}</span>
+                </div>
+              </td>
+
+              <!-- Cible -->
+              <td>
+                <span class="cible-badge"
+                      [class.cible-commande]="!promo.produits || promo.produits.length === 0"
+                      [class.cible-produit]="promo.produits && promo.produits.length > 0">
+                  {{ (promo.produits && promo.produits.length > 0) ? 'Produit(s)' : 'Commande' }}
+                </span>
+              </td>
+
+              <!-- Code / Produits -->
+              <td>
+                <ng-container *ngIf="promo.produits && promo.produits.length > 0">
+                  <span class="produits-count-badge">
+                    {{ promo.produits.length }} produit{{ promo.produits.length > 1 ? 's' : '' }}
+                  </span>
+                </ng-container>
+                <ng-container *ngIf="!promo.produits || promo.produits.length === 0">
+                  <span class="code-badge" *ngIf="promo.code">{{ promo.code }}</span>
+                  <span class="text-light" *ngIf="!promo.code">Sans code</span>
+                </ng-container>
+              </td>
+
+              <!-- Type -->
+              <td>
+                <span class="type-badge"
+                      [class.type-pct]="promo.type === 'POURCENTAGE'"
+                      [class.type-fixe]="promo.type === 'MONTANT_FIXE'">
+                  {{ getTypeLabel(promo.type) }}
+                </span>
+              </td>
+
+              <!-- Valeur -->
+              <td class="valeur-cell">{{ formatValeur(promo) }}</td>
+
+              <!-- Période -->
+              <td>
+                <div class="periode-cell">
+                  <span>{{ formatDate(promo.dateDebut) }}</span>
+                  <span class="periode-sep">→</span>
+                  <span>{{ formatDate(promo.dateFin) }}</span>
+                </div>
+              </td>
+
+              <!-- Statut -->
+              <td>
+                <span class="statut-badge" [ngClass]="getStatutClass(promo)">
+                  {{ getStatutLabel(promo) }}
+                </span>
+              </td>
+
+              <!-- Toggle actif -->
+              <td>
+                <label class="switch">
+                  <input type="checkbox" [checked]="promo.estActif" (change)="toggleActif(promo)">
+                  <span class="slider"></span>
+                </label>
+              </td>
+
+              <!-- Actions -->
+              <td>
+              <div class="action-btns">
+                <!-- Voir détails -->
+                <button class="btn-action view" (click)="openDetail(promo)" title="Voir les détails">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+
+                <!-- Modifier -->
+                <button class="btn-action edit" (click)="openModal(promo)" title="Modifier">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+
+                <!-- Supprimer -->
+                <button class="btn-action delete" (click)="confirmDelete(promo)" title="Supprimer">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+
+              </div>
+            </td>
+            </tr>
+
+            <!-- Vide -->
+            <tr *ngIf="promotions.length === 0">
+              <td colspan="9" class="empty-state">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+                <p>Aucune promotion trouvée</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="lastPage > 1">
+        <span class="pag-info">{{ paginationStart }}–{{ paginationEnd }} sur {{ total }}</span>
+        <div class="pag-btns">
+          <button class="pag-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">←</button>
+          <ng-container *ngFor="let p of pagesVisibles">
+            <span *ngIf="p === '...'" class="pag-ellipsis">…</span>
+            <button *ngIf="p !== '...'" class="pag-btn"
+                    [class.active]="currentPage === p"
+                    (click)="goToPage(+p)">{{ p }}</button>
+          </ng-container>
+          <button class="pag-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === lastPage">→</button>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL AJOUT / ÉDITION
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModalOnOverlay($event)">
+  <div class="modal-content modal-xl" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>{{ editingPromo ? 'Modifier la promotion' : 'Nouvelle promotion' }}</h2>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="savePromotion()">
+
+        <!-- ─── Cible de la promotion ─── -->
+        <div class="cible-section">
+          <p class="section-label">Cette promotion s'applique sur :</p>
+          <div class="cible-options">
+
+            <label class="cible-option" [class.selected]="ciblePromotion === 'COMMANDE'">
+              <input type="radio" name="cible" value="COMMANDE"
+                     [(ngModel)]="ciblePromotion" (change)="onCibleChange()">
+              <div class="cible-icone">🛒</div>
+              <div>
+                <strong>Une commande</strong>
+                <p>Avec code promo et montant minimum optionnels</p>
+              </div>
+            </label>
+
+            <label class="cible-option" [class.selected]="ciblePromotion === 'PRODUIT'">
+              <input type="radio" name="cible" value="PRODUIT"
+                     [(ngModel)]="ciblePromotion" (change)="onCibleChange()">
+              <div class="cible-icone">🏷️</div>
+              <div>
+                <strong>Des produits spécifiques</strong>
+                <p>La réduction s'applique directement sur les produits</p>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- ─── Infos générales ─── -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" [(ngModel)]="formData.nom" name="nom"
+                   placeholder="Ex : Soldes été 2026" required>
+          </div>
+          <div class="form-group" *ngIf="ciblePromotion === 'COMMANDE'">
+            <label>Code promo</label>
+            <input type="text" [(ngModel)]="formData.code" name="code"
+                   placeholder="Ex : SUMMER20" style="text-transform:uppercase">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="formData.description" name="description"
+                    placeholder="Description de la promotion..." rows="2"></textarea>
+        </div>
+
+        <!-- ─── Réduction ─── -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type de réduction *</label>
+            <select [(ngModel)]="formData.type" name="type" required>
+              <option value="POURCENTAGE">Pourcentage (%)</option>
+              <option value="MONTANT_FIXE">Montant fixe (Fr)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Valeur *</label>
+            <div class="input-suffix-wrap">
+              <input type="number" [(ngModel)]="formData.valeur" name="valeur"
+                     placeholder="0" min="0" required>
+              <span class="input-suffix">{{ formData.type === 'POURCENTAGE' ? '%' : 'Fr' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── Montant minimum (COMMANDE uniquement) ─── -->
+        <div class="form-group" *ngIf="ciblePromotion === 'COMMANDE'">
+          <label>Montant minimum de commande (Fr)</label>
+          <input type="number" [(ngModel)]="formData.montantMinCommande" name="montantMinCommande"
+                 placeholder="0 = aucun minimum" min="0">
+        </div>
+
+        <!-- ─── Dates ─── -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date de début *</label>
+            <input type="date" [(ngModel)]="formData.dateDebut" name="dateDebut" required>
+          </div>
+          <div class="form-group">
+            <label>Date de fin *</label>
+            <input type="date" [(ngModel)]="formData.dateFin" name="dateFin" required>
+          </div>
+        </div>
+
+        <!-- ─── Statut actif ─── -->
+        <div class="form-toggle">
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="formData.estActif" name="estActif">
+            <span class="slider"></span>
+          </label>
+          <span>Promotion active</span>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             SÉLECTION DES PRODUITS (si PRODUIT)
+        ══════════════════════════════════════ -->
+        <ng-container *ngIf="ciblePromotion === 'PRODUIT'">
+
+          <div class="form-divider"></div>
+
+          <div class="produits-section">
+            <p class="section-label">
+              Produits concernés *
+              <span class="section-count" *ngIf="produitsSelectionnes.length > 0">
+                {{ produitsSelectionnes.length }} sélectionné{{ produitsSelectionnes.length > 1 ? 's' : '' }}
+              </span>
+            </p>
+
+            <!-- Produits sélectionnés -->
+            <div class="produits-selectionnes" *ngIf="produitsSelectionnes.length > 0">
+              <div *ngFor="let p of produitsSelectionnes" class="produit-selectionne-tag">
+                <img [src]="getImagePrimaire(p)" [alt]="p.nom">
+                <span>{{ p.nom }}</span>
+                <button type="button" (click)="retirerProduit(p)" title="Retirer">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Recherche produits -->
+            <div class="produits-picker">
+              <div class="search-box produits-search">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input type="text" [(ngModel)]="searchProduit" name="searchProduit"
+                       (ngModelChange)="onSearchProduit()"
+                       placeholder="Rechercher un produit...">
+              </div>
+
+              <!-- Liste déroulante des produits -->
+              <div class="produits-liste-picker">
+
+                <div class="table-loading" *ngIf="isLoadingProduits" style="padding: 1.5rem">
+                  <div class="spinner"></div>
+                </div>
+
+                <div *ngFor="let p of produitsFiltres"
+                     class="produit-picker-item"
+                     [class.selected]="isSelected(p)"
+                     (click)="toggleProduit(p)">
+                  <img [src]="getImagePrimaire(p)" [alt]="p.nom">
+                  <div class="produit-picker-info">
+                    <span class="produit-picker-nom">{{ p.nom }}</span>
+                    <span class="produit-picker-prix">
+                      {{ p.prixPromo ? (p.prixPromo | number:'1.0-0') : (p.prix | number:'1.0-0') }} Fr
+                    </span>
+                  </div>
+                  <div class="produit-picker-check" *ngIf="isSelected(p)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="empty-picker" *ngIf="produitsFiltres.length === 0 && !isLoadingProduits">
+                  Aucun produit trouvé
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </ng-container>
+
+        <!-- ─── Aperçu ─── -->
+        <div class="promo-apercu" *ngIf="formData.valeur && formData.valeur > 0">
+          <div class="apercu-label">Aperçu</div>
+          <div class="apercu-content">
+            <span class="apercu-valeur">
+              {{ formData.type === 'POURCENTAGE' ? '-' + formData.valeur + '%' : '-' + (formData.valeur | number:'1.0-0') + ' Fr' }}
+            </span>
+            <span>de réduction</span>
+            <span *ngIf="ciblePromotion === 'COMMANDE' && formData.code">
+              avec le code <strong>{{ formData.code.toUpperCase() }}</strong>
+            </span>
+            <span *ngIf="ciblePromotion === 'COMMANDE' && formData.montantMinCommande">
+              dès <strong>{{ formatPrix(formData.montantMinCommande) }}</strong> d'achat
+            </span>
+            <span *ngIf="ciblePromotion === 'PRODUIT' && produitsSelectionnes.length > 0">
+              sur <strong>{{ produitsSelectionnes.length }} produit{{ produitsSelectionnes.length > 1 ? 's' : '' }}</strong>
+            </span>
+          </div>
+        </div>
+
+        <!-- ─── Erreur ─── -->
+        <div class="alert-error" *ngIf="formError" style="margin-top:1rem">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ formError }}
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="btn-submit" [disabled]="isSaving">
+            {{ isSaving ? 'Enregistrement...' : (editingPromo ? 'Mettre à jour' : 'Créer') }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL SUPPRESSION
+══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="showDeleteModal = false">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>Supprimer la promotion</h2>
+      <button class="close-btn" (click)="showDeleteModal = false">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="delete-confirmation">
+        <div class="warning-icon">⚠️</div>
+        <p>Voulez-vous vraiment supprimer <strong>{{ deletingPromo?.nom }}</strong> ?</p>
+        <p class="warning-text">Cette action est irréversible.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showDeleteModal = false">Annuler</button>
+        <button class="btn-delete" (click)="deletePromotion()" [disabled]="isSaving">
+          {{ isSaving ? 'Suppression...' : 'Supprimer' }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="showDetailModal = false">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>{{ detailPromo?.nom }}</h2>
+      <button class="close-btn" (click)="showDetailModal = false">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="detailPromo">
+
+      <div class="detail-grid">
+        <div class="detail-bloc">
+          <h4>Réduction</h4>
+          <p class="detail-valeur">{{ formatValeur(detailPromo) }}</p>
+          <p>{{ getTypeLabel(detailPromo.type) }}</p>
+        </div>
+        <div class="detail-bloc">
+          <h4>Code promo</h4>
+          <p><span class="code-badge" *ngIf="detailPromo.code">{{ detailPromo.code }}</span></p>
+          <p *ngIf="!detailPromo.code" class="text-light">Aucun code</p>
+        </div>
+        <div class="detail-bloc">
+          <h4>Période</h4>
+          <p>Du {{ formatDate(detailPromo.dateDebut) }}</p>
+          <p>au {{ detailPromo.dateFin ? formatDate(detailPromo.dateFin) : 'indéfini' }}</p>
+        </div>
+        <div class="detail-bloc">
+          <h4>Statut</h4>
+          <span class="statut-badge" [ngClass]="getStatutClass(detailPromo)">
+            {{ getStatutLabel(detailPromo) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="detail-bloc" *ngIf="detailPromo.description" style="margin-top: 1rem">
+        <h4>Description</h4>
+        <p>{{ detailPromo.description }}</p>
+      </div>
+
+      <!-- Produits liés -->
+      <div class="detail-produits" *ngIf="detailPromo.produits && detailPromo.produits.length > 0">
+        <h4>Produits concernés ({{ detailPromo.produits.length }})</h4>
+        <div class="produits-tags">
+          <span *ngFor="let p of detailPromo.produits" class="produit-tag">
+            {{ p.nom }}
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showDetailModal = false">Fermer</button>
+        <button class="btn-submit" (click)="showDetailModal = false; openModal(detailPromo!)">
+          Modifier
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
