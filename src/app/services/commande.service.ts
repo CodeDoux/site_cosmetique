@@ -18,6 +18,16 @@ export class CommandesService {
     );
   }
 
+  initierPaiement(commandeId: number, data: {
+  modePaiement: string;
+  operateur:    string;
+  telephone:    string;
+}): Observable<any> {
+  return this.http.post(
+    `${this.URL}/paiements/${commandeId}/initier`, data
+  );
+}
+
   createPaiement(data: {
   commande_id:   number;
   modePaiement:  'EN_LIGNE' | 'EN_ESPECE';

@@ -23,7 +23,11 @@ import { PromotionService } from '../../services/promotion.service';
 export class AccueilComponent implements OnInit, OnDestroy {
 
   storageUrl = environment.storageUrl;
+  apercuProduit: Produit | null = null;
+  apercuQte = 1;
 
+  // ─── Gestion des images actives par produit ───
+  private activeImageMap = new Map<number, number>();
   // ─── Hero Slider ───
   heroSlides = [
     {
@@ -329,8 +333,20 @@ getIconePromo(promo: any): string {
     console.log('Ajouté aux favoris :', product.nom);
   }
 
-  quickView(product: Produit): void {
-    this.router.navigate(['/produits'], { queryParams: { id: product.id } });
+  ouvrirApercu(produit: Produit): void {
+    this.apercuProduit = produit;
+    this.apercuQte     = 1;
+  }
+  getActiveIndex(produit: Produit): number {
+    return this.activeImageMap.get(produit.id!) ?? 0;
+  }
+
+  setActiveImage(produit: Produit, index: number): void {
+    this.activeImageMap.set(produit.id!, index);
+  }
+
+  getImageUrl(chemin: String): string {
+    return `${this.storageUrl}/${chemin}`;
   }
 
   voirGamme(gamme: Gamme): void {

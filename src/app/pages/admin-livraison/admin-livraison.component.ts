@@ -201,6 +201,7 @@ export class AdminLivraisonComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════
 
   openAssignModal(livraison: Livraison): void {
+    if (!livraison) return; // ← garde
     this.assignLivraison     = livraison;
     this.selectedLivreurId   = livraison.livreur?.id ?? null;
     this.showNouveauLivreur  = false;
@@ -234,13 +235,15 @@ export class AdminLivraisonComponent implements OnInit, OnDestroy {
     }
 
     this.isSaving = true;
+    const password = Math.random().toString(36).slice(-8) + 'A1!';
 
     this.http.post<Livreur>(`${this.usersUrl}`, {
       nomComplet: this.nouveauLivreur.nom,
       email:      this.nouveauLivreur.email,
       tel:        this.nouveauLivreur.tel,
       role:       'LIVREUR',
-      password:   Math.random().toString(36).slice(-8), // mot de passe temporaire
+      password:   password, // mot de passe temporaire
+      password_confirmation: password,
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
@@ -258,7 +261,7 @@ export class AdminLivraisonComponent implements OnInit, OnDestroy {
   private assignerLivreur(livraisonId: number, livreurId: number): void {
     this.isSaving = true;
 
-    this.http.patch(`${this.apiUrl}/${livraisonId}/assigner`, { livreur_id: livreurId })
+    this.http.post(`${this.apiUrl}/${livraisonId}/assigner`, { livreur_id: livreurId })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: any) => {

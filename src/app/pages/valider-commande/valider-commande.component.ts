@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 
 import { PanierService } from '../../services/panier.service';
 import { ProduitPanier } from '../../models/produit-panier';
@@ -62,6 +62,13 @@ interface PointRelais {
 export class ValiderCommandeComponent implements OnInit, OnDestroy {
 
   storageUrl = environment.storageUrl;
+    private destroy$ = new Subject<void>();
+    ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.subscription.unsubscribe();
+  }
+
 
   currentStep = 1;
 
@@ -122,10 +129,6 @@ export class ValiderCommandeComponent implements OnInit, OnDestroy {
     if (this.cartItems.length === 0) {
       this.router.navigate(['/panier']);
     }
-  }
-
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
   }
 
 
@@ -337,30 +340,56 @@ export class ValiderCommandeComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════
 
   placeOrder(): void {
-    if (!this.validateEtape1() || !this.validateEtape2()) return;
+  if (!this.validateEtape1() || !this.validateEtape2()) return;
 
-    this.isLoading = true;
-    this.formError = '';
+  this.isLoading = true;
+  this.formError = '';
 
-    const commandePayload = this.buildCommandePayload();
-    console.log('Payload envoyé :', JSON.stringify(commandePayload, null, 2));
+  const commandePayload = this.buildCommandePayload();
 
-    // Un seul appel API — paiement inclus dans le payload
-    this.commandesService.createCommande(commandePayload).subscribe({
-      next: (commande: any) => {
-        console.log('Réponse commande :', commande);
-        // L'API peut retourner { id } ou { data: { id } } ou { commande: { id } }
-        const commandeId = commande?.id ?? commande?.data?.id ?? commande?.commande?.id;
-        this.isLoading     = false;
-        this.commandeCreee = commandeId;
-        this.panierService.viderPanier();
-        this.currentStep   = 4;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      },
-      error: (err: any) => {
+  this.commandesService.createCommande(commandePayload).subscribe({
+    next: (res: any) => {
+      const commande   = res?.commande ?? res?.data ?? res;
+      const commandeId = commande?.id;
+      this.commandeCreee = commandeId;
+
+      // ── Espèces → confirmation directe
+      if (this.modePaiement === 'EN_ESPECE') {
         this.isLoading = false;
-        this.formError = err.message || 'Une erreur est survenue lors de la création de la commande.';
+        this.panierService.viderPanier();
+        this.currentStep = 4;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
       }
-    });
-  }
+
+      // ── En ligne → initier PayDunya
+      this.commandesService.initierPaiement(commandeId, {
+        modePaiement: 'EN_LIGNE',
+        operateur:    this.operateur,
+        telephone:    this.telephone,
+      }).pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (paiRes: any) => {
+          this.isLoading = false;
+          this.panierService.viderPanier();
+
+          if (paiRes?.checkout_url) {
+            window.location.href = paiRes.checkout_url; // ← redirection PayDunya
+          } else {
+            this.currentStep = 4;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        },
+        error: (err: any) => {
+          this.isLoading = false;
+          this.formError = err?.error?.message || 'Erreur lors du paiement.';
+        }
+      });
+    },
+    error: (err: any) => {
+      this.isLoading = false;
+      this.formError = err?.error?.message || 'Erreur lors de la création de la commande.';
+    }
+  });
+}
 }

@@ -52,8 +52,7 @@ body {
 .main-content-wrapper {
     flex: 1;
     margin: 0;
-    /* header-top(40) + navbar(70) + nav-menu(50) = 160px */
-    padding-top: 160px;
+    padding-top: 150px;
 }
 
 router-outlet { display: none; }
@@ -104,6 +103,7 @@ router-outlet { display: none; }
     background: var(--white);
     box-shadow: var(--shadow);
     border-bottom: 2px solid var(--secondary-color);
+    overflow: visible; /* ← important pour le dropdown */
 }
 
 .nav-content {
@@ -112,6 +112,7 @@ router-outlet { display: none; }
     align-items: center;
     height: var(--navbar-h);
     padding: 0 0;
+    overflow: visible; /* ← important */
 }
 
 /* ─── Logo ─── */
@@ -124,7 +125,7 @@ router-outlet { display: none; }
 }
 
 .logo-img {
-    height: 150px;
+    height: 130px;
     width: auto;
     object-fit: contain;
     display: block;
@@ -193,22 +194,22 @@ router-outlet { display: none; }
     font-family: var(--font-body);
 }
 
-/* ─── Menu catégories ─── */
+/* ─── Menu navbar ─── */
 .nav-menu {
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 1.75rem;
     padding: 0.75rem 0;
     font-size: 0.88rem;
     font-weight: 500;
     font-family: var(--font-body);
     flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    /* ← PAS de overflow-x: auto ici — ça coupe le dropdown */
+    overflow: visible;
+    position: relative;
+    z-index: 9998;
 }
-
-.nav-menu::-webkit-scrollbar { display: none; }
 
 .menu-item {
     color: var(--text-dark);
@@ -223,6 +224,73 @@ router-outlet { display: none; }
 
 .menu-item:hover,
 .menu-item.active { color: var(--primary-color); }
+
+
+/* ══════════════════════════════════════════
+   DROPDOWN NAVBAR
+══════════════════════════════════════════ */
+
+.menu-dropdown-wrap {
+    position: relative;
+    z-index: 9998;
+}
+
+.menu-item-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: var(--white);
+    border: 1.5px solid var(--border-color);
+    border-radius: 0.875rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    min-width: 220px;
+    padding: 0.5rem;
+    z-index: 99999; /* ← très élevé */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    pointer-events: none;
+}
+
+.dropdown-menu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 0.55rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.dropdown-item:first-child {
+    font-weight: 600;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0.25rem;
+    padding-bottom: 0.75rem;
+}
+
+.dropdown-item:hover {
+    background: var(--bg-soft);
+    color: var(--primary-color);
+}
 
 
 /* ══════════════════════════════════════════
@@ -354,29 +422,51 @@ router-outlet { display: none; }
 }
 
 
-/* ══════════════════════════════════════════
-   BOUTON WHATSAPP FLOTTANT
-══════════════════════════════════════════ */
-
+/* ─── Bouton WhatsApp flottant ─── */
 .whatsapp-btn {
     position: fixed;
-    bottom: 2rem; right: 2rem;
-    width: 56px; height: 56px;
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
     background: #25d366;
     color: white;
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.75rem;
     text-decoration: none;
-    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.5);
     z-index: 999;
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
 }
 
 .whatsapp-btn:hover {
+    background: #128c7e;
     transform: scale(1.1);
-    box-shadow: 0 6px 24px rgba(37, 211, 102, 0.5);
+    box-shadow: 0 6px 24px rgba(37, 211, 102, 0.6);
 }
+
+/* Pulse animé pour attirer l'attention */
+.whatsapp-btn::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #25d366;
+    opacity: 0.4;
+    animation: whatsapp-pulse 2s ease-out infinite;
+    z-index: -1;
+}
+
+@keyframes whatsapp-pulse {
+    0%   { transform: scale(1);   opacity: 0.4; }
+    70%  { transform: scale(1.5); opacity: 0;   }
+    100% { transform: scale(1.5); opacity: 0;   }
+}
+
 
 
 /* ══════════════════════════════════════════
@@ -432,11 +522,9 @@ router-outlet { display: none; }
 
 @media (max-width: 768px) {
 
-    /* Header top — texte plus court */
     .header-top { padding: 0 1rem; }
     .header-info { font-size: 0.8rem; }
 
-    /* Navbar — 2 lignes */
     .navbar { position: fixed; top: var(--header-top-h); }
 
     .nav-content {
@@ -446,11 +534,9 @@ router-outlet { display: none; }
         gap: 0.5rem;
     }
 
-    /* Logo à gauche, icônes à droite */
-    .logo    { order: 1; }
+    .logo      { order: 1; }
     .nav-icons { order: 2; }
 
-    /* Barre recherche passe en dessous sur toute la largeur */
     .search-bar {
         order: 3;
         flex-basis: 100%;
@@ -458,26 +544,59 @@ router-outlet { display: none; }
         margin: 0;
     }
 
-    /* Menu catégories — scroll horizontal */
+    /* Sur mobile le menu peut scroller horizontalement */
     .nav-menu {
         gap: 1rem;
         padding: 0.6rem 1rem;
         justify-content: flex-start;
+        overflow-x: auto;      /* ← scroll sur mobile uniquement */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
+    .nav-menu::-webkit-scrollbar { display: none; }
+
+    /* Sur mobile le dropdown s'affiche vers le bas normalement */
+    .dropdown-menu {
+        left: 0;
+        transform: translateY(-8px);
+        min-width: 180px;
+    }
+    .dropdown-menu.open { transform: translateY(0); }
 
     .logo-img { height: 150px; max-width: auto; }
     .logo { margin-top: 0; }
 
-    /* Compensation padding-top pour la navbar plus haute */
     .main-content-wrapper { padding-top: 180px; }
 
-    /* Footer */
-    .footer-grid   { grid-template-columns: 1fr 1fr; }
+    .footer-grid     { grid-template-columns: 1fr 1fr; }
     .newsletter-form { flex-direction: column; }
     .newsletter-btn  { width: 100%; }
 
-    /* WhatsApp */
     .whatsapp-btn { width: 48px; height: 48px; font-size: 1.5rem; bottom: 1rem; right: 1rem; }
+
+    /* Dropdown — position fixe sur mobile pour sortir du overflow */
+    .menu-dropdown-wrap {
+        position: static;
+    }
+
+    .dropdown-menu {
+        position: fixed;        /* ← fixed au lieu de absolute */
+        top: auto;
+        left: 1rem;
+        right: 1rem;
+        transform: none;
+        width: auto;
+        min-width: unset;
+        /* Positionner juste sous la navbar */
+        margin-top: 0;
+    }
+
+    /* Calculer la position depuis le haut */
+    .dropdown-menu.open {
+        transform: none;
+        /* header-top(40) + navbar auto + nav-menu */
+        top: 160px;
+    }
 }
 
 
@@ -489,39 +608,33 @@ router-outlet { display: none; }
 
     .container { padding: 0 0.875rem; }
 
-    /* Header top */
     .header-top { padding: 0 0.875rem; }
     .header-info { font-size: 0.75rem; }
     .icon-phone  { display: none; }
 
     .logo { margin-top: 0px; }
-    /* Logo */
     .logo-img { height: 110px; max-width: 170px; }
 
-    /* Icônes — réduire l'espacement */
     .nav-icons { gap: 0.75rem; }
 
-    /* Recherche */
     .search-input { font-size: 0.88rem; padding: 0.45rem 2rem 0.45rem 0.75rem; }
 
-    /* Menu items */
     .menu-item { font-size: 0.78rem; letter-spacing: 0.01em; }
     .nav-menu  { gap: 0.875rem; padding: 0.5rem 0.875rem; }
 
-    /* Padding contenu */
     .main-content-wrapper { padding-top: 200px; }
 
-    /* Footer */
     .footer-grid { grid-template-columns: 1fr; }
     .footer      { padding: 2rem 0; }
     .footer-logo { font-size: 1.3rem; }
     .social-links { gap: 0.5rem; }
 
-    /* Toast */
     .toast { min-width: 200px; font-size: .85rem; }
 
-    /* WhatsApp */
     .whatsapp-btn { width: 44px; height: 44px; font-size: 1.35rem; }
+     .dropdown-menu.open {
+        top: 180px;  /* ajuster selon votre navbar */
+    }
 }
 
 

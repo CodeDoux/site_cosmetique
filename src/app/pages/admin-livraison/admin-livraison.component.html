@@ -152,6 +152,7 @@
 
                   <!-- Assigner livreur -->
                   <button class="btn-action assign"
+                         *ngIf="livraison" 
                           (click)="openAssignModal(livraison)"
                           [title]="livraison.livreur ? 'Changer le livreur' : 'Assigner un livreur'">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">

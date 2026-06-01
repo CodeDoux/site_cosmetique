@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core'; // ← ajouter OnInit, OnDestroy
+import { Component, OnInit, OnDestroy, ViewEncapsulation, HostListener } from '@angular/core'; // ← ajouter OnInit, OnDestroy
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterModule } from '@angular/router';
 import { PanierService } from '../../services/panier.service';
@@ -16,6 +16,12 @@ import { CategorieService } from '../../services/categorie.service';
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit { // ← ajouter implements
+  showCatsDropdown = false;
+
+@HostListener('document:click')
+closeDropdowns(): void {
+  this.showCatsDropdown = false;
+}
 
   toasts$: Observable<Toast[]>;
   menuItems: string[] = [];

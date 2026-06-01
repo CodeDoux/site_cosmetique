@@ -134,22 +134,22 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
   // CALCULS GRAPHIQUES
   // ══════════════════════════════════════════
 
-  private calculerVentesParJour(commandes: Commande[]): void {
-    const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    const maintenant = new Date();
+ private calculerVentesParJour(commandes: Commande[]): void {
+  const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const maintenant = new Date();
 
-    this.ventesParJour = jours.map((label, i) => {
-      const date = new Date(maintenant);
-      date.setDate(maintenant.getDate() - (6 - i));
-      const dateStr = date.toISOString().slice(0, 10);
+  this.ventesParJour = jours.map((label, i) => {
+    const date = new Date(maintenant);
+    date.setDate(maintenant.getDate() - (6 - i));
+    const dateStr = date.toISOString().slice(0, 10);
 
-      const total = commandes
-        .filter(c => c.dateCommande?.slice(0, 10) === dateStr)
-        .reduce((sum, c) => sum + (c.montantTotal ?? 0), 0);
+    const total = commandes
+      .filter(c => c.dateCommande?.slice(0, 10) === dateStr)
+      .reduce((sum, c) => sum + Number(c.montantTotal ?? 0), 0); // ← Number()
 
-      return { label, value: total };
-    });
-  }
+    return { label, value: total };
+  });
+}
 
   private calculerStatutsCommandes(commandes: Commande[]): void {
     const statuts = [
@@ -172,13 +172,14 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
   // HELPERS GRAPHIQUES
   // ══════════════════════════════════════════
 
-  getMaxVentes(): number {
-    return Math.max(...this.ventesParJour.map(d => d.value), 1);
-  }
+  get maxVente(): number {
+  return Math.max(...this.ventesParJour.map(d => Number(d.value)), 1);
+}
 
-  getBarHeight(value: number): number {
-    return (value / this.getMaxVentes()) * 100;
-  }
+getBarHeight(value: number | string): number {
+  const val = Number(value);
+  return Math.round((val / this.maxVente) * 100);
+}
 
   getStatutPourcentage(value: number): number {
     const total = this.statutsCommandes.reduce((s, i) => s + i.value, 0);
@@ -241,10 +242,15 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
   // FORMATTERS
   // ══════════════════════════════════════════
 
-  formatPrix(montant: number): string {
-    if (!montant) return '0 Fr';
-    return montant.toLocaleString('fr-FR') + ' Fr';
-  }
+  formatPrix(montant: number | string | null | undefined): string {
+  if (!montant) return '0 Fr';
+  const nombre = typeof montant === 'string' ? parseFloat(montant) : montant;
+  if (isNaN(nombre)) return '0 Fr';
+  return nombre.toLocaleString('fr-FR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }) + ' Fr';
+}
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '—';
@@ -263,8 +269,10 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
     this.loadDashboard();
   }
 
-  get totalVentes(): number {
-  return this.ventesParJour.reduce((s, d) => s + d.value, 0);
+ get totalVentes(): number {
+  console.log('ventesParJour:', this.ventesParJour);
+  console.log('types:', this.ventesParJour.map(d => typeof d.value));
+  return this.ventesParJour.reduce((s, d) => s + Number(d.value), 0);
 }
 
 get aucuneVente(): boolean {

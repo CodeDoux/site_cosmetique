@@ -741,3 +741,51 @@
     .product-image-wrapper { height: 180px; }
     .collection-logo-wrap  { height: 140px; }
 }
+
+/* ─── Couleurs réseaux sociaux ─── */
+
+/* Instagram — dégradé violet/rose/orange */
+.social-instagram .social-link-icon {
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+.social-instagram:hover {
+    border-color: #e1306c;
+    background: rgba(225, 48, 108, 0.15);
+}
+
+/* Facebook — bleu */
+.social-facebook .social-link-icon {
+    background: #1877f2;
+}
+.social-facebook:hover {
+    border-color: #1877f2;
+    background: rgba(24, 119, 242, 0.15);
+}
+
+/* TikTok — noir/rouge */
+.social-tiktok .social-link-icon {
+    background: #010101;
+}
+.social-tiktok .social-link-icon svg {
+    fill: white;
+}
+.social-tiktok:hover {
+    border-color: #fe2c55;
+    background: rgba(254, 44, 85, 0.15);
+}
+
+/* WhatsApp — vert */
+.social-whatsapp .social-link-icon {
+    background: #25d366;
+}
+.social-whatsapp:hover {
+    border-color: #25d366;
+    background: rgba(37, 211, 102, 0.15);
+}
+
+/* Icônes — blanc sur toutes */
+.social-instagram .social-link-icon svg,
+.social-facebook  .social-link-icon svg,
+.social-whatsapp  .social-link-icon svg {
+    stroke: white;
+}
