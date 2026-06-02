@@ -57,6 +57,12 @@ export class PromotionService {
     );
   }
 
+  verifierCode(code: string, montant: number): Observable<any> {
+  return this.http.post<any>(`${this.url}/verifier`, {
+    code:    code.trim(),
+    montant: montant,
+  });
+}
   // ─── Mettre à jour ───
   update(id: number, data: Partial<Promotion>): Observable<Promotion> {
     return this.http.put<Promotion>(`${this.url}/${id}`, data).pipe(

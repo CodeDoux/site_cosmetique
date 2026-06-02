@@ -20,7 +20,7 @@
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        Exporter CSV
+        Exporter
       </button>
     </div>
   </div>
@@ -320,6 +320,24 @@
 
       <!-- Récapitulatif financier -->
       <div class="detail-recap">
+
+         <!-- Sous-total -->
+  <div class="recap-ligne">
+    <span>Sous-total</span>
+    <span>{{ formatPrix(getSousTotal(selectedCommande)) }}</span>
+  </div>
+
+  <!-- Réduction code promo -->
+  <div class="recap-ligne recap-reduction"
+       *ngIf="selectedCommande?.codePromo || (selectedCommande?.reduction ?? 0) > 0">
+    <span>
+      Réduction
+      <span class="promo-badge-mini" *ngIf="selectedCommande.codePromo">
+        {{ selectedCommande.codePromo }}
+      </span>
+    </span>
+    <span class="montant-reduction">-{{ formatPrix(selectedCommande.reduction ?? 0) }}</span>
+  </div>
         <div class="recap-ligne">
           <span>Frais de livraison</span>
           <span>{{ formatPrix(selectedCommande.fraisLivraison) }}</span>

@@ -110,14 +110,14 @@
 
           <!-- Continuer les achats -->
           <div class="panier-actions">
-            <button class="btn-continuer" [routerLink]="['/produits']">
+            <button class="btn-continuer" [routerLink]="['/home/produits']">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <line x1="19" y1="12" x2="5" y2="12"/>
                 <polyline points="12 19 5 12 12 5"/>
               </svg>
               Continuer mes achats
             </button>
-            <button class="btn-voir-gammes" [routerLink]="['/gammes']">
+            <button class="btn-voir-gammes" [routerLink]="['/home/gammes']">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
               </svg>
@@ -138,7 +138,7 @@
                 {{ item.type === 'PRODUIT' ? item.produit?.nom : item.gamme?.nom }}
                 <span class="recap-item-qte">× {{ item.quantite }}</span>
               </span>
-              <span class="recap-item-prix">{{ getSousTotal(item) }}</span>
+              <span class="recap-item-prix">  =  {{ getSousTotal(item) }}</span>
             </div>
           </div>
 

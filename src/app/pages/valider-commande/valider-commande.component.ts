@@ -119,6 +119,9 @@ export class ValiderCommandeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cartItems = this.panierService.getProduits();
+     // ← Récupérer le discount depuis le service panier
+  this.discount  = this.panierService.getDiscount();
+  this.codePromo = this.panierService.getCouponCode();
 
     this.subscription.add(
       this.panierService.getNombreProduits().subscribe(() => {
@@ -127,7 +130,7 @@ export class ValiderCommandeComponent implements OnInit, OnDestroy {
     );
 
     if (this.cartItems.length === 0) {
-      this.router.navigate(['/panier']);
+      this.router.navigate(['/home/panier']);
     }
   }
 
@@ -148,6 +151,7 @@ export class ValiderCommandeComponent implements OnInit, OnDestroy {
   get total(): number {
     return this.subtotal + this.fraisLivraison - this.discount;
   }
+
 
   get cartCount(): number {
     return this.cartItems.reduce((sum, item) => sum + item.quantite, 0);

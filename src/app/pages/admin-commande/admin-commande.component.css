@@ -579,3 +579,31 @@
     .page-header h1  { font-size: 1.4rem; }
     .data-table      { min-width: 600px; }
 }
+
+.recap-reduction {
+    color: var(--accent-color);
+}
+
+.montant-reduction {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.promo-badge-mini {
+    display: inline-block;
+    background: var(--bg-light);
+    color: var(--accent-color);
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .15rem .5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--accent-color);
+    margin-left: .4rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.gratuit {
+    color: #10b981;
+    font-weight: 600;
+}

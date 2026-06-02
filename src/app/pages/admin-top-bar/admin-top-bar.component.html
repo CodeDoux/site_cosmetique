@@ -20,13 +20,56 @@
   </div>
 
   <div class="top-bar-actions">
-    <button class="icon-btn" title="Notifications">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-      </svg>
-      <span class="badge">3</span>
-    </button>
+    <div class="notif-wrap" (click)="$event.stopPropagation()">
+
+  <button class="icon-btn" title="Notifications"
+          (click)="showNotifs = !showNotifs">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+    <span class="badge" *ngIf="nbNonLues > 0">{{ nbNonLues }}</span>
+  </button>
+
+  <!-- Dropdown notifications -->
+  <div class="notif-dropdown" *ngIf="showNotifs">
+
+    <div class="notif-header">
+      <h4>Notifications</h4>
+      <button class="btn-tout-lire" (click)="marquerToutLu()" *ngIf="nbNonLues > 0">
+        Tout marquer lu
+      </button>
+    </div>
+
+    <div class="notif-liste">
+
+      <div class="notif-vide" *ngIf="notifications.length === 0">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <p>Aucune notification</p>
+      </div>
+
+      <div *ngFor="let notif of notifications"
+           class="notif-item"
+           [class.non-lue]="!notif.estLu"
+           (click)="marquerLu(notif)">
+        <div class="notif-icone" [ngClass]="getIconeClass(notif.type)">
+          {{ getIcone(notif.type) }}
+        </div>
+        <div class="notif-contenu">
+          <p class="notif-titre">{{ notif.titre }}</p>
+          <p class="notif-message">{{ notif.message }}</p>
+          <span class="notif-date">{{ formatDateNotif(notif.created_at) }}</span>
+        </div>
+        <span class="notif-dot" *ngIf="!notif.estLu"></span>
+      </div>
+
+    </div>
+
+  </div>
+</div>
     <div class="admin-profile">
       <span class="admin-avatar">👨‍💼</span>
       <span class="admin-name">Admin</span>

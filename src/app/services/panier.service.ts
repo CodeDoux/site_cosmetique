@@ -12,6 +12,26 @@ export class PanierService {
     this.chargerDepuisSession()
   );
 
+  private discount$ = new BehaviorSubject<number>(0);
+private couponCode$ = new BehaviorSubject<string>('');
+
+getDiscount(): number {
+  return this.discount$.value;
+}
+
+getCouponCode(): string {
+  return this.couponCode$.value;
+}
+
+setDiscount(montant: number, code: string): void {
+  this.discount$.next(montant);
+  this.couponCode$.next(code);
+}
+
+resetDiscount(): void {
+  this.discount$.next(0);
+  this.couponCode$.next('');
+}
   // ─── Ajouter un produit ───
   ajouterProduit(produit: Produit, quantite = 1): void {
     const items   = this.items$.value;
@@ -72,6 +92,7 @@ export class PanierService {
   viderPanier(): void {
     this.items$.next([]);
     sessionStorage.removeItem('panier');
+    this.resetDiscount(); 
   }
 
   // ─── Getters ───
@@ -83,7 +104,6 @@ export class PanierService {
 
  getTotal(): number {
   return this.items$.value.reduce((total, item) => {
-    console.log('item :', item); // ← voir la structure exacte
     if (item.type === 'GAMME' && item.gamme) {
       return total + (item.gamme.prixPromo ?? item.gamme.prix_fixe) * item.quantite;
     }

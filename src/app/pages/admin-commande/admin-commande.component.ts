@@ -6,6 +6,8 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { Commande, StatutCommande } from '../../models/commande';
 import { CommandesService } from '../../services/commande.service';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 
 
 
@@ -177,6 +179,12 @@ export class AdminCommandeComponent implements OnInit, OnDestroy {
     return Math.ceil(this.filteredCommandes.length / this.itemsPerPage);
   }
 
+  getSousTotal(commande: any): number {
+  return (commande.montantTotal ?? 0)
+    + (commande.reduction ?? 0)
+    - (commande.fraisLivraison ?? 0);
+}
+
   get visiblePages(): number[] {
     const delta = 2;
     const pages: number[] = [];
@@ -240,26 +248,34 @@ export class AdminCommandeComponent implements OnInit, OnDestroy {
   closeDetail(): void { this.showDetail = false; this.selectedCommande = null; }
 
   // ─── Changer statut ───
-  updateStatut(commande: Commande, statut: StatutCommande): void {
-    this.isSaving = true;
+updateStatut(commande: Commande, statut: StatutCommande): void {
+  this.isSaving = true;
 
-    this.commandesService.updateStatut(commande.id, statut)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (updated) => {
-          commande.statut = updated.statut;
-          if (this.selectedCommande?.id === commande.id) {
-            this.selectedCommande!.statut = updated.statut;
-          }
-          this.isSaving = false;
-        },
-        error: (err) => {
-          console.error('Erreur mise à jour statut :', err.message);
-          this.isSaving = false;
+  this.commandesService.updateStatut(commande.id, statut)
+    .subscribe({
+      next: (updated: any) => {
+        // Récupérer le statut depuis n'importe quelle structure de réponse
+        const nouveauStatut = updated?.commande?.statut
+          ?? updated?.data?.statut
+          ?? updated?.statut
+          ?? statut; // ← fallback sur la valeur envoyée
+
+        // Mettre à jour dans la liste
+        commande.statut = nouveauStatut;
+
+        // Mettre à jour dans le modal si ouvert
+        if (this.selectedCommande?.id === commande.id) {
+          this.selectedCommande!.statut = nouveauStatut;
         }
-      });
-  }
 
+        this.isSaving = false;
+      },
+      error: (err) => {
+        console.error('Erreur mise à jour statut :', err.message);
+        this.isSaving = false;
+      }
+    });
+}
   // ─── Annuler ───
   annulerCommande(commande: Commande): void {
     if (!confirm(`Annuler la commande ${commande.reference} ?`)) return;
@@ -306,30 +322,176 @@ export class AdminCommandeComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ─── Export CSV ───
-  exportData(): void {
-    const csv = [
-      ['Référence', 'Client', 'Email', 'Date', 'Mode livraison', 'Frais', 'Total', 'Statut'].join(','),
-      ...this.filteredCommandes.map(c => [
-        c.reference,
-        this.getNomClient(c),
-        this.getEmailClient(c),
-        this.formatDate(c.dateCommande),
-        c.modeLivraison,
-        c.fraisLivraison.toFixed(2),
-        c.montantTotal.toFixed(2),
-        this.getStatutLabel(c.statut),
-      ].join(','))
-    ].join('\n');
+  // Fonction spéciale pour le PDF
+private formatPrixPdf(montant: number | string): string {
+  if (!montant) return '0 Fr';
+  const nombre = typeof montant === 'string' ? parseFloat(montant) : montant;
+  if (isNaN(nombre)) return '0 Fr';
+  
+  // Formatage manuel sans toLocaleString
+  const parts = Math.round(nombre).toString().split('');
+  let result = '';
+  parts.reverse().forEach((digit, i) => {
+    if (i > 0 && i % 3 === 0) result = ' ' + result;
+    result = digit + result;
+  });
+  
+  return result + ' Fr';
+}
 
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `commandes-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+
+exportData(): void {
+  const doc = new jsPDF();
+  const dateExport = new Date().toLocaleDateString('fr-FR');
+
+  // ─── En-tête ───
+  doc.setFontSize(18);
+  doc.setTextColor(53, 77, 53);
+  doc.text('Toulay Skin — Liste des commandes', 14, 20);
+
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text(`Exporté le ${dateExport}`, 14, 28);
+  doc.text(`Total : ${this.filteredCommandes.length} commande(s)`, 14, 34);
+
+  let currentY = 42;
+
+  this.filteredCommandes.forEach((c, index) => {
+
+    // ─── Saut de page si nécessaire ───
+    if (currentY > 240) {
+      doc.addPage();
+      currentY = 20;
+    }
+
+    // ─── Titre commande ───
+    doc.setFontSize(11);
+    doc.setTextColor(53, 77, 53);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Commande ${c.reference}`, 14, currentY);
+    currentY += 6;
+
+    // ─── Infos générales ───
+    doc.setFontSize(9);
+    doc.setTextColor(80);
+    doc.setFont('helvetica', 'normal');
+
+    const nomClient = this.getNomClient(c);
+    const tel       = c.user?.tel ?? c.client?.tel ?? '—';
+    const email     = this.getEmailClient(c);
+    const date      = this.formatDate(c.dateCommande);
+    const statut    = this.getStatutLabel(c.statut);
+    const livraison = this.getModeLivraisonLabel(c.modeLivraison);
+
+    doc.text(`Client : ${nomClient} | Tél : ${tel} | Email : ${email}`, 14, currentY);
+    currentY += 5;
+    doc.text(`Date : ${date} | Livraison : ${livraison} | Statut : ${statut}`, 14, currentY);
+    currentY += 6;
+
+    // ─── Tableau des produits ───
+    const lignes = c.lignes_commande ?? [];
+    const rows   = lignes.map((l: any) => {
+      const nom        = l.produit?.nom ?? l.gamme?.nom ?? '—';
+      const prixNormal = l.produit?.prix
+        ? this.formatPrixPdf(Number(l.produit.prix))
+        : '—';
+      const prixPromo  = l.produit?.prixPromo
+        ? this.formatPrixPdf(Number(l.produit.prixPromo))
+        : '—';
+      const prixApplique = this.formatPrixPdf(Number(l.prix));
+      const qte          = l.quantite;
+      const sousTotal    = this.formatPrixPdf(Number(l.montantLigne));
+
+      return [nom, prixNormal, prixPromo, prixApplique, qte, sousTotal];
+    });
+
+    autoTable(doc, {
+      startY: currentY,
+      head:   [['Produit', 'Prix normal', 'Prix promo', 'Prix appliqué', 'Qté', 'Sous-total']],
+      body:   rows,
+      styles: {
+        fontSize:    8,
+        cellPadding: 2.5,
+      },
+      headStyles: {
+        fillColor: [53, 77, 53],
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize:  8,
+      },
+      alternateRowStyles: {
+        fillColor: [250, 245, 244],
+      },
+      columnStyles: {
+        0: { cellWidth: 55 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 25 },
+        4: { cellWidth: 15 },
+        5: { cellWidth: 25 },
+      },
+      margin: { left: 14, right: 14 },
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 4;
+
+    // ─── Récapitulatif financier ───
+    doc.setFontSize(9);
+    doc.setTextColor(80);
+    doc.setFont('helvetica', 'normal');
+
+    const sousTotal     = this.formatPrixPdf(Number(c.montantTotal) - Number(c.fraisLivraison) + Number(c.reduction ?? 0));
+    const frais         = c.fraisLivraison === 0 ? 'GRATUIT' : this.formatPrix(Number(c.fraisLivraison));
+    const total         = this.formatPrixPdf(Number(c.montantTotal));
+
+    doc.text(`Sous-total articles : ${sousTotal}`, 130, currentY);
+    currentY += 5;
+
+    // Réduction si applicable
+    if (c.reduction && Number(c.reduction) > 0) {
+      doc.setTextColor(224, 146, 157); // rose
+      doc.text(
+        `Réduction${c.codePromo ? ' (' + c.codePromo + ')' : ''} : -${this.formatPrixPdf(Number(c.reduction))}`,
+        130, currentY
+      );
+      doc.setTextColor(80);
+      currentY += 5;
+    }
+
+    doc.text(`Frais de livraison : ${frais}`, 130, currentY);
+    currentY += 5;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(53, 77, 53);
+    doc.text(`Total : ${total}`, 130, currentY);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80);
+    currentY += 8;
+
+    // ─── Séparateur entre commandes ───
+    if (index < this.filteredCommandes.length - 1) {
+      doc.setDrawColor(200);
+      doc.line(14, currentY, 196, currentY);
+      currentY += 6;
+    }
+  });
+
+  // ─── Pied de page ───
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(
+      `Page ${i} / ${pageCount} — Toulay Skin © ${new Date().getFullYear()}`,
+      doc.internal.pageSize.getWidth() / 2,
+      doc.internal.pageSize.getHeight() - 8,
+      { align: 'center' }
+    );
   }
+
+  doc.save(`commandes-${new Date().toISOString().slice(0, 10)}.pdf`);
+}
 
 
   // ══════════════════════════════════════════
@@ -528,11 +690,18 @@ telechargerFacture(commande: Commande): void {
     y += bold ? 9 : 7;
   };
 
-  const sousTotal = lignes.reduce((s, l) => s + l.montantLigne, 0);
-  addLigne('Sous-total',       this.formatPrix(sousTotal));
-  addLigne('Frais de livraison', this.formatPrix(commande.fraisLivraison));
+  const sousTotal = lignes.reduce((s: number, l: any) => s + Number(l.montantLigne), 0);
+  addLigne('Sous-total',       this.formatPrixPdf(sousTotal));
+  // Réduction si applicable
+  if (commande.reduction && Number(commande.reduction) > 0) {
+    const labelReduction = commande.codePromo
+      ? `Réduction (${commande.codePromo})`
+      : 'Réduction';
+    addLigne(labelReduction, '-' + this.formatPrixPdf(Number(commande.reduction)));
+  }
+  addLigne('Frais de livraison', this.formatPrixPdf(commande.fraisLivraison));
   y += 2;
-  addLigne('TOTAL',            this.formatPrix(commande.montantTotal), true);
+  addLigne('TOTAL',            this.formatPrixPdf(commande.montantTotal), true);
 
   // ─── Paiement ───
   if (commande.paiement) {

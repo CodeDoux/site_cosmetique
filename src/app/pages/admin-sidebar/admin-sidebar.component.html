@@ -7,50 +7,115 @@
   </div>
 
   <nav class="sidebar-nav">
-    <a class="nav-item" routerLink="/admin/dashboard" routerLinkActive="active">
-      <span class="nav-icon">📊</span>
-      <span class="nav-text" *ngIf="isOpen">Dashboard</span>
-    </a>
-     <a class="nav-item" routerLink="/admin/admin-categories" routerLinkActive="active">
-      <span class="nav-icon">📁</span>
-      <span class="nav-text" *ngIf="isOpen">Catégories</span>
-    </a>
-     <a class="nav-item" routerLink="/admin/admin-produits" routerLinkActive="active">
-      <span class="nav-icon">🛍️</span>
-      <span class="nav-text" *ngIf="isOpen">Produits</span>
-    </a>
-     <a class="nav-item" routerLink="/admin/admin-gammes" routerLinkActive="active">
-      <span class="nav-icon">🛍️</span>
-      <span class="nav-text" *ngIf="isOpen">Gammes</span>
-    </a>
-    <a class="nav-item" routerLink="/admin/admin-commandes" routerLinkActive="active">
-      <span class="nav-icon">📦</span>
-      <span class="nav-text" *ngIf="isOpen">Commandes</span>
-    </a>
-   
-    
-   
-    <a class="nav-item" routerLink="/admin/admin-paiements" routerLinkActive="active">
-      <span class="nav-icon">📁</span>
-      <span class="nav-text" *ngIf="isOpen">Paiements</span>
-    </a>
-    <a class="nav-item" routerLink="/admin/admin-livraisons" routerLinkActive="active">
-      <span class="nav-icon">📁</span>
-      <span class="nav-text" *ngIf="isOpen">Livraisons</span>
-    </a>
-    <a class="nav-item" routerLink="/admin/admin-promotions" routerLinkActive="active">
-      <span class="nav-icon">📁</span>
-      <span class="nav-text" *ngIf="isOpen">Promotions</span>
-    </a>
-    <a class="nav-item" routerLink="/admin/admin-users" routerLinkActive="active">
-      <span class="nav-icon">👨‍💼</span>
-      <span class="nav-text" *ngIf="isOpen">Users</span>
-    </a>
-    <a class="nav-item" routerLink="/admin/settings" routerLinkActive="active">
-      <span class="nav-icon">⚙️</span>
-      <span class="nav-text" *ngIf="isOpen">Settings</span>
-    </a>
-  </nav>
+
+  <a class="nav-item" routerLink="/admin/dashboard" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Dashboard</span>
+  </a>
+
+  <a class="nav-item" routerLink="/admin/admin-categories" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Catégories</span>
+  </a>
+
+  <a class="nav-item" routerLink="/admin/admin-produits" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Produits</span>
+  </a>
+
+  <a class="nav-item" routerLink="/admin/admin-gammes" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <path d="M8 21h8M12 17v4"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Gammes</span>
+  </a>
+
+  <a class="nav-item" routerLink="/admin/admin-commandes" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Commandes</span>
+  </a>
+
+  <a class="nav-item" routerLink="/admin/admin-paiements" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="1" y="4" width="22" height="16" rx="2"/>
+        <line x1="1" y1="10" x2="23" y2="10"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Paiements</span>
+  </a>
+
+  <a class="nav-item" routerLink="/admin/admin-livraisons" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="1" y="3" width="15" height="13"/>
+        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/>
+        <circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Livraisons</span>
+  </a>
+
+  <a class="nav-item" routerLink="/admin/admin-promotions" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <line x1="7" y1="7" x2="7.01" y2="7"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Promotions</span>
+  </a>
+
+  <a class="nav-item" routerLink="/admin/admin-users" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Users</span>
+  </a>
+
+  <a class="nav-item" routerLink="/admin/settings" routerLinkActive="active">
+    <span class="nav-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </span>
+    <span class="nav-text" *ngIf="isOpen">Settings</span>
+  </a>
+
+</nav>
 
   <div class="sidebar-footer">
     <a class="nav-item" routerLink="/home/accueil">

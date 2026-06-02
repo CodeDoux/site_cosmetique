@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { PanierService } from '../../services/panier.service';
-import { GammeService } from '../../services/gamme.service';
-import { ProduitService } from '../../services/produit.service';
-import { ProduitPanier } from '../../models/produit-panier';
-import { environment } from '../../../environments/environment';
+import { PanierService }    from '../../services/panier.service';
+import { GammeService }     from '../../services/gamme.service';
+import { ProduitService }   from '../../services/produit.service';
+import { PromotionService } from '../../services/promotion.service';
+import { ProduitPanier }    from '../../models/produit-panier';
+import { environment }      from '../../../environments/environment';
 
 @Component({
   selector: 'app-panier',
@@ -23,22 +24,25 @@ export class PanierComponent implements OnInit, OnDestroy {
 
   cartItems: ProduitPanier[] = [];
 
-  couponCode    = '';
-  couponApplied = false;
-  discount      = 0;
+  // ─── Code promo ───
+  couponCode       = '';
+  couponApplied    = false;
+  couponError      = '';
+  isCheckingCoupon = false;
+  discount         = 0;
 
   private subscription = new Subscription();
 
   constructor(
-    private router:         Router,
-    private panierService:  PanierService,
-    private gammeService:   GammeService,
-    private produitService: ProduitService
+    private router:           Router,
+    private panierService:    PanierService,
+    private gammeService:     GammeService,
+    private produitService:   ProduitService,
+    private promotionService: PromotionService
   ) {}
 
   ngOnInit(): void {
     this.cartItems = this.panierService.getProduits();
-
     this.subscription.add(
       this.panierService.getNombreProduits().subscribe(() => {
         this.cartItems = this.panierService.getProduits();
@@ -52,7 +56,7 @@ export class PanierComponent implements OnInit, OnDestroy {
 
 
   // ══════════════════════════════════════════
-  // GETTERS
+  // GETTERS FINANCIERS
   // ══════════════════════════════════════════
 
   get subtotal(): number {
@@ -94,9 +98,9 @@ export class PanierComponent implements OnInit, OnDestroy {
   getSousTotal(item: ProduitPanier): string {
     let prix = 0;
     if (item.type === 'PRODUIT' && item.produit) {
-      prix = (item.produit.prixPromo ?? item.produit.prix) * item.quantite;
+      prix = Number(item.produit.prixPromo ?? item.produit.prix) * item.quantite;
     } else if (item.type === 'GAMME' && item.gamme) {
-      prix = (item.gamme.prixPromo ?? item.gamme.prix_fixe) * item.quantite;
+      prix = Number(item.gamme.prixPromo ?? item.gamme.prix_fixe) * item.quantite;
     }
     return this.formatPrix(prix);
   }
@@ -139,25 +143,37 @@ export class PanierComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════
 
   applyCoupon(): void {
-    const codes: Record<string, number> = {
-      'WELCOME10': 0.10,
-      'SAVE20':    0.20,
-      'BEAUTY15':  0.15,
-    };
+    if (!this.couponCode.trim()) return;
 
-    const taux = codes[this.couponCode.toUpperCase()];
-    if (taux) {
-      this.discount     = this.subtotal * taux;
-      this.couponApplied = true;
-    } else {
-      alert('Code promo invalide.');
-    }
+    this.isCheckingCoupon = true;
+    this.couponError      = '';
+
+    this.promotionService.verifierCode(this.couponCode, this.subtotal)
+      .subscribe({
+        next: (res: any) => {
+          this.isCheckingCoupon = false;
+          this.discount         = Number(res.reduction ?? 0);
+          this.couponApplied    = true;
+          this.couponError      = '';
+           // ← Sauvegarder dans le service
+        this.panierService.setDiscount(this.discount, this.couponCode);
+        },
+        error: (err: any) => {
+          this.isCheckingCoupon = false;
+          this.couponApplied    = false;
+          this.discount         = 0;
+          this.couponError      = err?.error?.message ?? 'Code promo invalide.';
+          this.panierService.resetDiscount();
+        }
+      });
   }
 
   removeCoupon(): void {
     this.couponCode    = '';
     this.discount      = 0;
     this.couponApplied = false;
+    this.couponError   = '';
+     this.panierService.resetDiscount();
   }
 
 
@@ -174,7 +190,13 @@ export class PanierComponent implements OnInit, OnDestroy {
   // HELPERS
   // ══════════════════════════════════════════
 
-  formatPrix(montant: number): string {
-    return montant.toLocaleString('fr-FR') + ' Fr';
+  formatPrix(montant: number | string): string {
+    if (!montant) return '0 Fr';
+    const nombre = typeof montant === 'string' ? parseFloat(montant) : montant;
+    if (isNaN(nombre)) return '0 Fr';
+    return nombre.toLocaleString('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }) + ' Fr';
   }
 }

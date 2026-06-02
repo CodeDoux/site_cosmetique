@@ -16,6 +16,8 @@ export class Commande {
   statut!: StatutCommande;
   fraisLivraison!: number;
   modeLivraison!: ModeLivraison;
+  codePromo?: string;
+  reduction?: number;
   created_at!: string;
   updated_at!: string;
 
