@@ -10,7 +10,8 @@ import { Register } from '../models/register';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
- private readonly API   = `http://127.0.0.1:8000/api/auth`;
+     private API = `${environment.apiUrl}/auth`;
+
 
  private endpoint = 'auth';
    private currentUserSubject = new BehaviorSubject<any>(null);
