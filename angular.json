@@ -3,7 +3,7 @@
     "version": 1,
     "newProjectRoot": "projects",
     "projects": {
-        "site_ecommerce": {
+        "site_cosmetique": {
             "projectType": "application",
             "schematics": {},
             "root": "",
@@ -13,7 +13,7 @@
                 "build": {
                     "builder": "@angular-devkit/build-angular:application",
                     "options": {
-                        "outputPath": "dist/site_ecommerce",
+                        "outputPath": "dist/site_cosmetique",
                         "index": "src/index.html",
                         "browser": "src/main.ts",
                         "polyfills": [
@@ -62,10 +62,10 @@
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "configurations": {
                         "production": {
-                            "buildTarget": "site_ecommerce:build:production"
+                            "buildTarget": "site_cosmetique:build:production"
                         },
                         "development": {
-                            "buildTarget": "site_ecommerce:build:development"
+                            "buildTarget": "site_cosmetique:build:development"
                         }
                     },
                     "defaultConfiguration": "development"
