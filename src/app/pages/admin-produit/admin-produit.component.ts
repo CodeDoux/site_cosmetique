@@ -24,8 +24,7 @@ interface AdminFilters extends ProduitFilters {
 })
 export class AdminProduitComponent implements OnInit, OnDestroy {
 
-  storageUrl = 'http://127.0.0.1:8000/storage';
-
+ storageUrl = environment.storageUrl;
   // ─── Données ───
   produits: Produit[] = [];
   categories: Categorie[] = [];
