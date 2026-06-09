@@ -3,7 +3,7 @@
     "version": 1,
     "newProjectRoot": "projects",
     "projects": {
-        "site_ecommerce_v2": {
+        "site_ecommerce": {
             "projectType": "application",
             "schematics": {},
             "root": "",
@@ -13,7 +13,7 @@
                 "build": {
                     "builder": "@angular-devkit/build-angular:application",
                     "options": {
-                        "outputPath": "dist/site_ecommerce_v2",
+                        "outputPath": "dist/site_ecommerce",
                         "index": "src/index.html",
                         "browser": "src/main.ts",
                         "polyfills": [
@@ -62,10 +62,10 @@
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "configurations": {
                         "production": {
-                            "buildTarget": "site_ecommerce_v2:build:production"
+                            "buildTarget": "site_ecommerce:build:production"
                         },
                         "development": {
-                            "buildTarget": "site_ecommerce_v2:build:development"
+                            "buildTarget": "site_ecommerce:build:development"
                         }
                     },
                     "defaultConfiguration": "development"
