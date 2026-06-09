@@ -360,7 +360,6 @@ export class AdminProduitComponent implements OnInit, OnDestroy {
   }
 
   getImageUrl(chemin: string): string {
-    console.log(this.storageUrl)
     return `${this.storageUrl}/${chemin}`;
   }
 

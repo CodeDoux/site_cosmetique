@@ -261,7 +261,7 @@
           <div class="gamme-info-static">
             <h3 class="gamme-name">{{ gamme.nom }}</h3>
             <p class="gamme-desc" *ngIf="gamme.description">
-              {{ gamme.description | slice:0:70 }}{{ (gamme.description?.length ?? 0) > 70 ? '…' : '' }}
+              {{ gamme.description | slice:0:70 }}{{ (gamme.description.length) > 70 ? '…' : '' }}
             </p>
             <div class="gamme-footer-static">
               <p class="gamme-prix" *ngIf="gamme.prix_fixe">

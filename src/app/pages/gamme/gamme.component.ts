@@ -10,7 +10,7 @@ import { Gamme, GammeFilters, StatutGamme } from '../../models/gamme';
 
 @Component({
   selector: 'app-gammes',
-  imports: [CommonModule, FormsModule, RouterLink, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   encapsulation: ViewEncapsulation.None,
   templateUrl: './gamme.component.html',
   styleUrl: './gamme.component.css'
