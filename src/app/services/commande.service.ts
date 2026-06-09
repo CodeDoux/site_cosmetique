@@ -2,12 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
 import { Commande } from '../models/commande';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CommandesService {
-  private readonly URL = "http://127.0.0.1:8000/api";
+  private readonly URL = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

@@ -3,13 +3,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Produit, ProduitFilters, PaginatedResponse, Image } from '../models/produit';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProduitService {
 
-  private endpoint = 'http://127.0.0.1:8000/api/produits';
+    private endpoint = `${environment.apiUrl}/produits`;
+  
 
   constructor(private http: HttpClient) {}
 

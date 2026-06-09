@@ -9,7 +9,8 @@ import { environment } from '../../environments/environment';
 export class GammeService {
 
   private endpoint = `${environment.apiUrl}/gammes`;
-  storageUrl= 'http://127.0.0.1:8000/storage';
+  storageUrl= environment.storageUrl;
+
 
   constructor(private http: HttpClient) {}
 
