@@ -78,7 +78,6 @@
 ══════════════════════════════════════════ */
 
 .panier-page {
-    margin-top: 40px;
     background: var(--bg-soft);
     min-height: 100vh;
     font-family: var(--font-body);

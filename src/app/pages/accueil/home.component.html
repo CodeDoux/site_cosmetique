@@ -17,7 +17,7 @@
     <div class="container">
       <div class="nav-content">
         <div class="logo" routerLink="/">
-        <img src="images/logo/Logo Toulayskin-03.png" alt="CoBeauty" class="logo-img">
+        <img src="images/logo/Logo Toulayskin-03.png" alt="Toulayskin" class="logo-img">
       </div>
 
         <div class="search-bar">
@@ -29,13 +29,13 @@
         </div>
 
         <div class="nav-icons" >
-          <div class="" routerLink="/login">
+          <div class="" routerLink="/login" routerLinkActive="active">
           <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
           </div>
-          <div class="cart-wrapper" routerLink="/home/panier">
+          <div class="cart-wrapper" routerLink="/home/panier" routerLinkActive="active">
             <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="9" cy="21" r="1"></circle>
               <circle cx="20" cy="21" r="1"></circle>
@@ -49,9 +49,9 @@
       <div class="nav-menu">
   
          <a
-        [routerLink]="['/']"
+        [routerLink]="['/home/accueil']"
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true, queryParams: 'exact' }"
+        [routerLinkActiveOptions]="{ exact: true }"
         class="menu-item">Accueil</a>
         
      <div class="menu-dropdown-wrap"
@@ -89,12 +89,10 @@
         <a
         [routerLink]="['/home/gammes']"
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true, queryParams: 'exact' }"
         class="menu-item">Gammes</a>
         <a
         [routerLink]="['/home/contact']"
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true, queryParams: 'exact' }"
         class="menu-item">Contact</a>
     </div>
     </div>
@@ -126,65 +124,47 @@
   </svg>
 </a>
 
-  <!-- Footer -->
   <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
+  <div class="container">
+    <div class="footer-grid">
 
-        <div class="footer-col">
-          <div class="footer-logo">
-            <div class="logo" routerLink="/">
-              <img src="images/logo/Logo Toulayskin-05.png" alt="CoBeauty" class="logo-img">
-            </div>
-          </div>
-          <p class="footer-desc">
-            Votre destination beauté pour des produits cosmétiques naturels et de qualité supérieure.
-          </p>
-          <div class="social-links">
-            <a href="#" class="social-icon">f</a>
-            <a href="#" class="social-icon">t</a>
-            <a href="#" class="social-icon">in</a>
-            <a href="#" class="social-icon">ig</a>
-          </div>
+      <div class="footer-col">
+        <div class="footer-logo">
+          <img src="images/logo/Logo Toulayskin-05.png" alt="Toulayskin"
+               class="logo-img" routerLink="/" style="cursor:pointer">
         </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Catégories</h4>
-          <ul class="footer-links">
-            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Capillaires'}">Capillaires</a></li>
-            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Beauté'}">Beauté</a></li>
-            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Parfums'}">Parfums</a></li>
-            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Corps et visage'}">Corps et visage</a></li>
-            <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Pédicure manicure'}">Pédicure manicure</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Informations</h4>
-          <ul class="footer-links">
-            <li><a href="#">À propos</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Livraison</a></li>
-            <li><a href="#">Retours</a></li>
-            <li><a href="#">Politique de confidentialité</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Newsletter</h4>
-          <p class="footer-desc">Inscrivez-vous pour recevoir nos offres exclusives</p>
-          <div class="newsletter-form">
-            <input type="email" placeholder="Votre email" class="newsletter-input">
-            <button class="newsletter-btn">→</button>
-          </div>
-        </div>
-
+        <p class="footer-desc">
+          Votre destination beauté pour des produits cosmétiques naturels et de qualité supérieure.
+        </p>
       </div>
 
-      <div class="footer-bottom">
-        <p>&copy; 2024 CoBeauty. Tous droits réservés. Créé avec ❤️ pour la beauté.</p>
+      <div class="footer-col">
+        <h4 class="footer-title">Catégories</h4>
+        <ul class="footer-links">
+          <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Capillaires'}">Capillaires</a></li>
+          <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Beauté'}">Beauté</a></li>
+          <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Parfums'}">Parfums</a></li>
+          <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Corps et visage'}">Corps et visage</a></li>
+          <li><a [routerLink]="['/home/produits']" [queryParams]="{category: 'Pédicure manicure'}">Pédicure manicure</a></li>
+        </ul>
       </div>
+
+      <div class="footer-col">
+        <h4 class="footer-title">Informations</h4>
+        <ul class="footer-links">
+          <li><a href="#">À propos</a></li>
+          <li><a [routerLink]="['/home/contact']">Contact</a></li>
+          <li><a [routerLink]="['/home/produits']">Produits</a></li>
+          <li><a [routerLink]="['/home/gammes']">Gammes</a></li>
+        </ul>
+      </div>
+
     </div>
-  </footer>
+
+    <div class="footer-bottom">
+      <p>&copy; {{ currentYear }} Toulayskin. Tous droits réservés. Créé avec ❤️ pour la beauté.</p>
+    </div>
+  </div>
+</footer>
 
 </div>

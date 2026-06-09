@@ -19,7 +19,8 @@
           <button [class.active]="selectedPeriod === 'today'" (click)="filterByPeriod('today')">Aujourd'hui</button>
           <button [class.active]="selectedPeriod === 'week'"  (click)="filterByPeriod('week')">7 jours</button>
           <button [class.active]="selectedPeriod === 'month'" (click)="filterByPeriod('month')">Mois</button>
-        </div>
+          <button [class.active]="selectedPeriod === 'year'"  (click)="filterByPeriod('year')">Année</button>
+       </div>
       </div>
     </div>
 
@@ -146,7 +147,7 @@
       <div class="data-card">
         <div class="data-card-header">
           <h3>Commandes récentes</h3>
-          <a routerLink="/admin/commandes" class="voir-tout">Voir tout →</a>
+          <a routerLink="/admin/admin-commandes" class="voir-tout">Voir tout →</a>
         </div>
 
         <div class="table-container">
@@ -184,7 +185,7 @@
       <div class="data-card">
         <div class="data-card-header">
           <h3>Clients récents</h3>
-          <a routerLink="/admin/users" class="voir-tout">Voir tout →</a>
+          <a routerLink="/admin/admin-users" class="voir-tout">Voir tout →</a>
         </div>
 
         <div class="clients-liste">
@@ -215,7 +216,7 @@
     <div class="data-card" style="margin-top: 1.5rem">
       <div class="data-card-header">
         <h3>Produits du catalogue</h3>
-        <a routerLink="/admin/produits" class="voir-tout">Voir tout →</a>
+        <a routerLink="/admin/admin-produits" class="voir-tout">Voir tout →</a>
       </div>
 
       <div class="table-container">
@@ -232,8 +233,8 @@
             <tr *ngFor="let produit of topProduits">
               <td>
                 <div class="produit-cell">
-                  <img [src]="getProduitImage(produit)" [alt]="produit.nom"
-                       onerror="this.src='images/placeholder.jpg'">
+                  <img [src]="produit.image_primaire ? storageUrl +'/'+ produit.image_primaire : 'images/placeholder.jpg'" [alt]="produit.nom"
+                       onerror="this.src='images/produit1.jpg'">
                   <div>
                     <p class="produit-nom">{{ produit.nom }}</p>
                     <p class="produit-cat" *ngIf="produit.categorie">{{ produit.categorie.nom }}</p>

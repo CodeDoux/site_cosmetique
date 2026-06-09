@@ -74,98 +74,104 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════
 
   loadDashboard(): void {
-    this.isLoading = true;
-    forkJoin({
-      commandes: this.commandesService.getAll().pipe(catchError(() => of([]))),
-      produits:  this.produitService.getProduits({ per_page: 100 }).pipe(catchError(() => of({ data: [] }))),
-      clients:   this.http.get<any>(`${this.apiUrl}/users?role=CLIENT&per_page=100`).pipe(catchError(() => of({ data: [] }))),
-      paiements: this.http.get<any>(`${this.apiUrl}/paiements?per_page=100`).pipe(catchError(() => of({ data: [] }))),
-    })
+  this.isLoading = true;
+
+  this.http.get<any>(`${this.apiUrl}/dashboard/stats`)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: ({ commandes, produits, clients, paiements }) => {
+      next: (data: any) => {
 
-        // ─── Commandes ───
-        const listeCommandes: Commande[] = Array.isArray(commandes)
-          ? commandes
-          : (commandes as any)?.data ?? [];
+        // ─── KPIs ───
+        this.totalCommandes     = data.total_commandes     ?? 0;
+        this.totalClients       = data.total_clients       ?? 0;
+        this.totalRevenu        = Number(data.chiffre_affaires ?? 0);
+        this.totalProduits      = data.total_produits      ?? 0;
+        this.commandesEnAttente = data.commandes_par_statut
+          ?.find((s: any) => s.statut === 'EN_ATTENTE')?.total ?? 0;
 
-        this.totalCommandes     = listeCommandes.length;
-        this.commandesEnAttente = listeCommandes.filter(c => c.statut === 'EN_ATTENTE').length;
-        this.recentCommandes    = listeCommandes.slice(0, 5);
+        // ─── Commandes récentes ───
+        this.recentCommandes = data.commandes_recentes ?? [];
 
-        // ─── Produits ───
-        const listeProduits: Produit[] = Array.isArray(produits)
-          ? produits
-          : (produits as any)?.data ?? [];
-
-        this.totalProduits = listeProduits.length;
-        this.topProduits   = listeProduits.slice(0, 4);
-
-        // ─── Clients ───
-        const listeClients: User[] = Array.isArray(clients)
-          ? clients
-          : (clients as any)?.data ?? [];
-
-        this.totalClients  = listeClients.length;
-        this.recentClients = listeClients.slice(0, 4);
-
-        // ─── Paiements (revenu total) ───
-        const listePaiements: Paiement[] = Array.isArray(paiements)
-          ? paiements
-          : (paiements as any)?.data ?? [];
-
-        this.totalRevenu = listePaiements
-          .filter(p => p.statutPaiement === 'PAYEE')
-          .reduce((sum, p) => sum + p.montant, 0);
-
-        // ─── Calculs graphiques ───
-        this.calculerVentesParJour(listeCommandes);
-        this.calculerStatutsCommandes(listeCommandes);
+        // ─── Top produits ───
+        this.topProduits = data.top_produits ?? [];
+        this.recentClients   = data.clients_recents    ?? [];
+        // ─── Graphiques ───
+        this.calculerVentesParJour(data.ventes_7_jours ?? [], 'week');
+        this.calculerStatutsCommandes(data.commandes_par_statut ?? []);
 
         this.isLoading = false;
       },
       error: () => { this.isLoading = false; }
     });
-  }
-
+}
 
   // ══════════════════════════════════════════
   // CALCULS GRAPHIQUES
   // ══════════════════════════════════════════
 
- private calculerVentesParJour(commandes: Commande[]): void {
-  const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-  const maintenant = new Date();
+ private calculerVentesParJour(ventesData: any[], period: string = 'week'): void {
 
+  if (period === 'today') {
+    const heures = ['8h','10h','12h','14h','16h','18h','20h'];
+    this.ventesParJour = heures.map((label, i) => {
+      const vente = ventesData.find((v: any) => Number(v.heure) === i + 8);
+      return { label, value: Number(vente?.total ?? 0) };
+    });
+    return;
+  }
+
+  if (period === 'month') {
+    // Jours du mois en cours : 01, 02, 03...
+    const nbJours     = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    const annee       = new Date().getFullYear();
+    const mois        = String(new Date().getMonth() + 1).padStart(2, '0');
+
+    this.ventesParJour = Array.from({ length: nbJours }, (_, i) => {
+      const jour    = String(i + 1).padStart(2, '0');
+      const dateStr = `${annee}-${mois}-${jour}`;
+      const vente   = ventesData.find((v: any) => v.date === dateStr);
+      return { label: jour, value: Number(vente?.total ?? 0) };
+    });
+    return;
+  }
+
+  if (period === 'year') {
+    // Mois de l'année : Jan, Fév, Mar...
+    const mois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+    this.ventesParJour = mois.map((label, i) => {
+      const vente = ventesData.find((v: any) => Number(v.mois) === i + 1);
+      return { label, value: Number(vente?.total ?? 0) };
+    });
+    return;
+  }
+
+  // week — par défaut
+  const jours      = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const maintenant = new Date();
   this.ventesParJour = jours.map((label, i) => {
-    const date = new Date(maintenant);
+    const date    = new Date(maintenant);
     date.setDate(maintenant.getDate() - (6 - i));
     const dateStr = date.toISOString().slice(0, 10);
-
-    const total = commandes
-      .filter(c => c.dateCommande?.slice(0, 10) === dateStr)
-      .reduce((sum, c) => sum + Number(c.montantTotal ?? 0), 0); // ← Number()
-
-    return { label, value: total };
+    const vente   = ventesData.find((v: any) => v.date === dateStr);
+    return { label, value: Number(vente?.total ?? 0) };
   });
 }
 
-  private calculerStatutsCommandes(commandes: Commande[]): void {
-    const statuts = [
-      { key: 'EN_ATTENTE',     label: 'En attente',     color: '#f59e0b' },
-      { key: 'EN_PREPARATION', label: 'En préparation', color: '#3b82f6' },
-      { key: 'EN_LIVRAISON',   label: 'En livraison',   color: '#caca8e' },
-      { key: 'LIVREE',         label: 'Livrée',         color: '#354d35' },
-      { key: 'ANNULEE',        label: 'Annulée',        color: '#ef4444' },
-    ];
+  private calculerStatutsCommandes(statutsData: any[]): void {
+  const statuts = [
+    { key: 'EN_ATTENTE',     label: 'En attente',     color: '#f59e0b' },
+    { key: 'EN_PREPARATION', label: 'En préparation', color: '#3b82f6' },
+    { key: 'EN_LIVRAISON',   label: 'En livraison',   color: '#caca8e' },
+    { key: 'LIVREE',         label: 'Livrée',         color: '#354d35' },
+    { key: 'ANNULEE',        label: 'Annulée',        color: '#ef4444' },
+  ];
 
-    this.statutsCommandes = statuts.map(s => ({
-      label: s.label,
-      color: s.color,
-      value: commandes.filter(c => c.statut === s.key).length,
-    })).filter(s => s.value > 0);
-  }
+  this.statutsCommandes = statuts.map(s => ({
+    label: s.label,
+    color: s.color,
+    value: Number(statutsData.find(d => d.statut === s.key)?.total ?? 0),
+  })).filter(s => s.value > 0);
+}
 
 
   // ══════════════════════════════════════════
@@ -242,14 +248,20 @@ getBarHeight(value: number | string): number {
   // FORMATTERS
   // ══════════════════════════════════════════
 
-  formatPrix(montant: number | string | null | undefined): string {
+   formatPrix(montant: number | string): string {
   if (!montant) return '0 Fr';
   const nombre = typeof montant === 'string' ? parseFloat(montant) : montant;
   if (isNaN(nombre)) return '0 Fr';
-  return nombre.toLocaleString('fr-FR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }) + ' Fr';
+  
+  // Formatage manuel sans toLocaleString
+  const parts = Math.round(nombre).toString().split('');
+  let result = '';
+  parts.reverse().forEach((digit, i) => {
+    if (i > 0 && i % 3 === 0) result = ' ' + result;
+    result = digit + result;
+  });
+  
+  return result + ' Fr';
 }
 
   formatDate(dateStr: string): string {
@@ -266,8 +278,18 @@ getBarHeight(value: number | string): number {
 
   filterByPeriod(period: string): void {
     this.selectedPeriod = period;
-    this.loadDashboard();
+    this.updateGraphique(period);
   }
+
+  updateGraphique(period: string): void {
+  this.http.get<any>(`${this.apiUrl}/dashboard/ventes?period=${period}`)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (data: any) => {
+        this.calculerVentesParJour(data.ventes ?? [], period);
+      }
+    });
+}
 
  get totalVentes(): number {
   console.log('ventesParJour:', this.ventesParJour);

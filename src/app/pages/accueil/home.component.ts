@@ -18,6 +18,7 @@ import { CategorieService } from '../../services/categorie.service';
 export class HomeComponent implements OnInit { // ← ajouter implements
   showCatsDropdown = false;
 
+  currentYear = new Date().getFullYear();
 @HostListener('document:click')
 closeDropdowns(): void {
   this.showCatsDropdown = false;

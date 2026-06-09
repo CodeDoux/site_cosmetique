@@ -165,7 +165,7 @@
           </div>
 
           <!-- Code promo -->
-          <div class="code-promo-section">
+          <div class="code-promo-section" *ngIf="shipping===0">
             <h3>Code promo</h3>
             <div class="code-promo-form" *ngIf="!couponApplied">
               <input type="text" [(ngModel)]="couponCode"
@@ -227,10 +227,10 @@
         <h2>Votre panier est vide</h2>
         <p>Parcourez notre catalogue et ajoutez des produits ou des gammes à votre panier</p>
         <div class="panier-vide-actions">
-          <button class="btn-decouvrir" [routerLink]="['/produits']">
+          <button class="btn-decouvrir" [routerLink]="['/home/produits']">
             Découvrir nos produits
           </button>
-          <button class="btn-decouvrir btn-decouvrir-gammes" [routerLink]="['/gammes']">
+          <button class="btn-decouvrir btn-decouvrir-gammes" [routerLink]="['/home/gammes']">
             Voir nos gammes
           </button>
         </div>

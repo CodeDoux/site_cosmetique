@@ -1,16 +1,5 @@
 <div class="checkout-page">
 
-  <!-- Fil d'ariane -->
-  <div class="breadcrumb">
-    <div class="container">
-      <a [routerLink]="['/']">Accueil</a>
-      <span class="separator">/</span>
-      <a [routerLink]="['/panier']">Panier</a>
-      <span class="separator">/</span>
-      <span class="current">Validation de commande</span>
-    </div>
-  </div>
-
   <section class="checkout-section">
     <div class="container">
       <h1 class="page-title">Validation de commande</h1>
@@ -25,7 +14,7 @@
         <p class="confirmation-sub">Vous recevrez un e-mail de confirmation très prochainement.</p>
         <div class="confirmation-actions">
           <a [routerLink]="['/']" class="btn-retour-accueil">Retour à l'accueil</a>
-          <a [routerLink]="['/produits']" class="btn-continuer-achats">Continuer mes achats</a>
+          <a [routerLink]="['/home/produits']" class="btn-continuer-achats">Continuer mes achats</a>
         </div>
       </div>
 
@@ -247,7 +236,7 @@
               </div>
 
               <div class="etape-actions">
-                <button class="btn-retour" [routerLink]="['/panier']">
+                <button class="btn-retour" [routerLink]="['/home/panier']">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
                   </svg>
@@ -367,7 +356,7 @@
                     <p>{{ inviteInfo.nom }} — {{ inviteInfo.tel }}</p>
                   </ng-container>
                   <ng-container *ngIf="modeLivraison === 'RETRAIT_MAGASIN'">
-                    <p>Rond Point Cipres / Jac Mbao, Dakar</p>
+                    <p>Pikine / Saf Bar</p>
                   </ng-container>
                 </div>
               </div>
@@ -429,14 +418,6 @@
                     </ng-container>
 
                   </div>
-                </div>
-              </div>
-
-              <!-- Code promo -->
-              <div class="form-group">
-                <label>Code promo (optionnel)</label>
-                <div class="code-promo-form">
-                  <input type="text" [(ngModel)]="codePromo" placeholder="Entrez votre code promo">
                 </div>
               </div>
 

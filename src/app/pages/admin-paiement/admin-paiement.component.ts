@@ -87,7 +87,7 @@ export class AdminPaiementComponent implements OnInit, OnDestroy {
     const payees    = list.filter(p => p.statutPaiement === 'PAYEE');
     const nonPayees = list.filter(p => p.statutPaiement === 'NON_PAYEE');
     const rembourses = list.filter(p => p.statutPaiement === 'REMBOURSE');
-    const totalMontant = payees.reduce((s, p) => s + p.montant, 0);
+    const totalMontant = payees.reduce((s, p) => s + Number(p.montant), 0);
 
     return [
       { title: 'Total encaissé',   value: this.formatPrix(totalMontant), icon: 'money',    color: 'success' },

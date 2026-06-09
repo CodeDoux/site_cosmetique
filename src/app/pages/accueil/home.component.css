@@ -125,7 +125,7 @@ router-outlet { display: none; }
 }
 
 .logo-img {
-    height: 130px;
+    height: 150px;
     width: auto;
     object-fit: contain;
     display: block;
@@ -220,10 +220,64 @@ router-outlet { display: none; }
     font-size: 0.85rem;
     white-space: nowrap;
     flex-shrink: 0;
+     position: relative;      /* ← ajouter */
+    padding-bottom: 4px;
 }
 
 .menu-item:hover,
-.menu-item.active { color: var(--primary-color); }
+.menu-item.active { color: var(--primary-color); font-weight: 600;}
+
+/* ─── Menu item actif ─── */
+.menu-item.active {
+    color: var(--primary-color);
+    font-weight: 600;
+    position: relative;
+}
+
+.menu-item.active::after {
+     content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent-color);
+    border-radius: 9999px;
+}
+
+.menu-item:hover::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(224, 146, 157, 0.4);
+    border-radius: 9999px;
+}
+/* ─── Dropdown item actif ─── */
+.dropdown-item.active {
+    background: var(--bg-soft);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* ─── Icônes nav actives ─── */
+.nav-icons .icon:hover,
+.nav-icons svg:hover {
+    color: var(--accent-color);
+}
+
+/* ─── Icône panier active ─── */
+.cart-wrapper.active svg,
+.cart-wrapper:hover svg {
+    stroke: var(--accent-color);
+}
+
+/* ─── Icône profil active ─── */
+.nav-icons div[routerLinkActive="active"] svg {
+    stroke: var(--accent-color);
+}
 
 
 /* ══════════════════════════════════════════
@@ -312,24 +366,31 @@ router-outlet { display: none; }
 
 .footer-col { display: flex; flex-direction: column; }
 
+/* ─── Logo footer ─── */
 .footer-logo {
-    font-family: var(--font-display);
-    font-size: 1.6rem;
-    font-weight: 400;
-    color: var(--white);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     margin-bottom: 1rem;
 }
 
-.footer-logo-img {
-    height: 200px;
-    width: auto;
-    object-fit: contain;
-    filter: brightness(0) invert(1);
+.footer-logo .logo {
+    display: inline-block;
+    cursor: pointer;
+    width: 160px;
+    height: 80px;
+    overflow: hidden;
 }
 
+.footer-logo .logo-img {
+    width: 100px;
+    height: 100%;
+    object-fit: contain;
+    object-position: left center;
+    filter: none;
+    transition: opacity 0.3s;
+}
+
+.footer-logo .logo-img:hover {
+    opacity: 0.85;
+}
 .footer-desc {
     font-family: var(--font-body);
     font-size: 0.95rem;
