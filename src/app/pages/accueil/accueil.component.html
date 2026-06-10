@@ -44,7 +44,7 @@
     <div class="container">
       <div class="categories-grid">
         <div *ngFor="let cat of categories" class="category-card"
-             [routerLink]="['/produits']" [queryParams]="{category: cat.name}">
+             [routerLink]="['/home/produits']" [queryParams]="{category: cat.name}">
           <div class="category-icon">{{ cat.icon }}</div>
           <p class="category-name">{{ cat.name }}</p>
         </div>

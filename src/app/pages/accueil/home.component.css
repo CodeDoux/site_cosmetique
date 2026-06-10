@@ -89,6 +89,58 @@ router-outlet { display: none; }
 
 .icon-phone { width: 14px; height: 14px; flex-shrink: 0; }
 
+/* ─── Header top layout ─── */
+.header-top .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+}
+
+/* ─── Texte défilant ─── */
+.header-marquee {
+    flex: 1;
+    overflow: hidden;
+    margin: 0 2rem;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.marquee-track {
+    display: flex;
+    gap: 3rem;
+    width: max-content;
+    animation: marquee 20s linear infinite;
+}
+
+.marquee-track span {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+@keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.marquee-track:hover {
+    animation-play-state: paused;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+    .header-marquee { margin: 0 1rem; }
+    .marquee-track span { font-size: 0.78rem; }
+}
+
+@media (max-width: 480px) {
+    .header-info span { display: none; } /* ← cacher le texte, garder l'icône */
+    .header-marquee { margin: 0 0.5rem; }
+}
+
 
 /* ══════════════════════════════════════════
    NAVBAR
@@ -202,7 +254,7 @@ router-outlet { display: none; }
     gap: 1.75rem;
     padding: 0.75rem 0;
     font-size: 0.88rem;
-    font-weight: 500;
+    font-weight: 600;
     font-family: var(--font-body);
     flex-wrap: nowrap;
     /* ← PAS de overflow-x: auto ici — ça coupe le dropdown */

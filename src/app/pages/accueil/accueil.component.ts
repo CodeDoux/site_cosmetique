@@ -64,13 +64,15 @@ export class AccueilComponent implements OnInit, OnDestroy {
 
   // ─── Catégories (statiques) ───
   categories = [
-    { name: 'Capillaire',      icon: '💆‍♀️' },
-    { name: 'Beauté',          icon: '💄'  },
-    { name: 'Parfums',         icon: '🌸'  },
-    { name: 'Hygiène',         icon: '🧴'  },
-    { name: 'Corps et visage', icon: '✨'  },
-    { name: 'Autres',          icon: '🖌️' }
-  ];
+  { name: 'Capillaire',        icon: '💆‍♀️' },
+  { name: 'Soin du visage',    icon: '🧖‍♀️' },
+  { name: 'Soin du corps',     icon: '🧴'   },
+  { name: 'Maquillage',        icon: '💄'   },
+  { name: 'Parfums',           icon: '🌸'   },
+  { name: 'Hygiène',           icon: '🚿'   },
+  { name: 'Bébé & Maternité',  icon: '👶'   },
+  { name: 'Homme',             icon: '🧔'   },
+];
 
   menuItems: string[] = [
     'Capillaires', 'Beauté', 'Parfums',
