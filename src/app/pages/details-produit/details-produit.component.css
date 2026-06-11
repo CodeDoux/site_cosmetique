@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════
    DETAILS PRODUIT
 ══════════════════════════════════════════ */
-
+/* styles.css — variables globales accessibles partout */
 :root {
     --primary-color: #354d35;
     --primary-hover: #2a3d2a;
@@ -10,18 +10,15 @@
     --accent-hover: #d4788a;
     --bg-light: #fde9e8;
     --bg-soft: #faf5f4;
-    --bg-card: #ffffff;
     --text-dark: #1e2b1e;
     --text-gray: #6b7a6b;
-    --text-light: #9baa9b;
     --border-color: #dde5dd;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
+    --white: #ffffff;
     --shadow: 0 1px 4px 0 rgb(53 77 53 / 0.08);
     --shadow-lg: 0 10px 30px -5px rgb(53 77 53 / 0.15);
     --font-display: 'Baket Fashion', 'Georgia', serif;
     --font-body: 'Heuvel Grotesk', 'DM Sans', sans-serif;
+    --header-top-h: 40px;
 }
 
 .details-page {

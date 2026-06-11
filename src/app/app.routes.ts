@@ -20,6 +20,7 @@ import { AdminPromotionComponent } from './pages/admin-promotion/admin-promotion
 import { AdminGammeComponent } from './pages/admin-gamme/admin-gamme.component';
 import { AdminUserComponent } from './pages/admin-user/admin-user.component';
 import { DetailsGammeComponent } from './pages/details-gamme/details-gamme.component';
+import { DetailsProduitComponent } from './pages/details-produit/details-produit.component';
 
 export const routes: Routes = [
      { path: '', redirectTo: 'home/accueil', pathMatch: 'full' },
@@ -38,7 +39,8 @@ export const routes: Routes = [
     { path: 'validerCommande', component: ValiderCommandeComponent },
     { path: 'gammes', component: GammeComponent },
     { path: 'contact', component: ContactComponent },
-    {path: 'gammes/:id',component: DetailsGammeComponent}
+    {path: 'gammes/:id',component: DetailsGammeComponent},
+    { path: 'produits/:id', component: DetailsProduitComponent }
 
     ]
   },
