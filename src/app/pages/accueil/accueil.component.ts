@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { Component, OnInit, OnDestroy, ViewEncapsulation, Renderer2, Inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterModule, Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -12,6 +12,7 @@ import { GammeService } from '../../services/gamme.service';
 import { PanierService } from '../../services/panier.service';
 import { ToastService } from '../../services/toast.service';
 import { PromotionService } from '../../services/promotion.service';
+import { Meta, Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-accueil',
@@ -175,14 +176,46 @@ isLoadingPromos = false;
     private panierService:  PanierService,
     private router:         Router,
     private toastService:   ToastService,
-    private promotionService: PromotionService
+    private promotionService: PromotionService,
+    private titleService: Title,
+  private metaService: Meta,
+  private renderer: Renderer2,
+            @Inject(DOCUMENT) private document: Document
   ) {}
 
+setCanonicalURL(url?: string) {
+
+  const canURL = url || this.document.URL;
+
+  let link: HTMLLinkElement =
+    this.document.querySelector("link[rel='canonical']") || this.renderer.createElement('link');
+
+  link.setAttribute('rel', 'canonical');
+  link.setAttribute('href', canURL);
+
+  this.renderer.appendChild(
+    this.document.head,
+    link
+  );
+}
+
   ngOnInit(): void {
+
+     this.titleService.setTitle(
+    'Accueil - Toulay Skin'
+  );
+
+  this.metaService.updateTag({
+    name: 'description',
+    content: 'Découvrez nos produits skincare et soins de qualité.'
+  });
+   this.setCanonicalURL();
     this.loadProducts();
     this.loadGammes();
     this.startSlider();
     this.loadPromotions();
+   
+
   }
 
  
